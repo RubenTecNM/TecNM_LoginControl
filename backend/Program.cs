@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TecNM.Api.Data;
+using TecNM.Api.Modules.Session;
 
 const string FrontendCors = "Frontend";
 
@@ -7,6 +8,9 @@ LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
+
+// Los callbacks OIDC transportan códigos temporales en la cadena de consulta.
+builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
 
 var connectionString = configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -46,14 +50,16 @@ foreach (var origin in allowedOrigins)
 }
 
 builder.Services.AddControllers();
+builder.Services.AddSessionAuthentication(configuration);
 builder.Services.AddDbContext<TecNMDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddCors(options => options.AddPolicy(FrontendCors, policy =>
-    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
+    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseCors(FrontendCors);
+app.UseAuthentication();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapControllers();
 

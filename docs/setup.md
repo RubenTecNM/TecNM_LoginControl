@@ -38,13 +38,13 @@ El navegador puede pedir aceptar el certificado local. Producción requiere su c
 
 El archivo **debe estar en la raíz del repositorio**. Compose lo monta de solo lectura en `/docker-entrypoint-initdb.d/01-schema.sql`. El inicializador de la imagen PostgreSQL lo ejecuta con el usuario `tecnm_app` sobre la base `tecnm_template` cuando el directorio de datos está vacío.
 
-El archivo incluido solo contiene comentarios; permite arrancar sin tablas de aplicación. **Cada equipo que cree un microservicio debe rellenarlo con su esquema o modificar el setup y Compose para usar su estrategia de inicialización.**
+El SQL del proyecto crea las tablas de usuarios y tipos de usuario y los cuatro tipos iniciales. No crea usuarios; los registros deben proporcionarse externamente con identidades verificadas.
 
 - Definir tablas, relaciones, índices, restricciones y vistas propios; usar `snake_case`.
 - Mantener el SQL alineado con entidades y configuraciones de `backend/Data/`.
-- El template no carga semillas adicionales ni depende de tablas de negocio.
+- Las semillas de tipos forman parte de `database.sql`; no se cargan usuarios ni semillas adicionales.
 - No aplica migraciones EF, `EnsureCreated` ni SQL adicional desde backend o script.
-- Si se eligen migraciones u otro mecanismo, actualizar también esta documentación y las specs del proyecto.
+- Para bases existentes se requiere una migración explícita revisada; no existe una migración automática en este proyecto.
 
 ## Persistencia y cambios de esquema
 
@@ -78,13 +78,22 @@ bash scripts/setup-dev.sh --project-name tecnm-prueba --frontend-port 5180 --bac
 
 Un fallo en `database.sql` puede dejar una inicialización parcial. Si PostgreSQL no alcanza su health check, el setup reporta el error y conserva el volumen. No revierte, vuelve a aplicar ni repara el SQL automáticamente. Consultar `docker compose logs db`, corregir el script y resolver explícitamente el estado de la base. Para repetir una prueba desde cero puede usarse otro proyecto con volumen nuevo.
 
-Una base ya inicializada puede arrancar tras un reinicio automático o en un intento posterior aunque el SQL previo haya fallado. El health check solo verifica disponibilidad de PostgreSQL; cada microservicio debe comprobar su esquema y adoptar migraciones controladas.
+Una base ya inicializada puede arrancar tras un reinicio automático o en un intento posterior aunque el SQL previo haya fallado. El health check solo verifica disponibilidad de PostgreSQL; el proyecto debe comprobar su esquema y adoptar migraciones controladas.
+
+## Inicio de sesión institucional
+
+Copiar los valores de sesión de `.env.example` al `.env` de la raíz para Compose, o usar `backend/.env.example` para ejecución manual. Nunca guardar secretos en Git. Generar una clave exclusiva de al menos 32 bytes codificada en base64 con `openssl rand -base64 32`; configurar también emisor y audiencia estables. Sin configuración completa del proveedor y de la firma, el login responde `503`; el health check sigue disponible.
+
+`SESSION_FRONTEND_URL` es el origen HTTPS público exacto (por ejemplo `https://localhost:5173`), sin ruta. Si se cambia el puerto frontend y no se fija esta variable, Compose usa ese puerto. Registrar en los proveedores las URL públicas `https://localhost:5173/api/session/callback/google` y `https://localhost:5173/api/session/callback/microsoft`, ajustando origen y puerto al entorno. No usar las URL internas del contenedor. Se requieren las credenciales de cada aplicación y el UUID del tenant Microsoft; configurar en Microsoft Entra los claims opcionales `acct` y `email` en el ID token. Google debe emitir `hd`, `email_verified`, correo y `sub`. Solo se admiten las organizaciones y dominios de la spec.
+
+No se incluyen usuarios semilla ni una herramienta de alta. Cada registro debe tener un tipo y al menos una identidad vinculada de forma confiable, con el correo normalizado y los identificadores requeridos por proveedor. Una base ya inicializada necesita una actualización de esquema explícita y revisada antes de usar esta versión; el setup no la aplica. Para ensayos, usar un proyecto y volumen nuevos aislados.
 
 ## Verificación
 
 ```bash
 python3 scripts/check-dev-ports.py
 python3 scripts/check-setup.py
+bash scripts/test-session.sh  # PostgreSQL temporal y pruebas backend; requiere Docker y .NET
 API_URL=https://localhost:7001 bash scripts/smoke-template.sh
 ```
 

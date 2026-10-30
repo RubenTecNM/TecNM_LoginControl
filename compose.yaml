@@ -33,6 +33,15 @@ services:
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/localhost.crt
       ASPNETCORE_Kestrel__Certificates__Default__KeyPath: /https/localhost.key
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=tecnm_template;Username=tecnm_app;Password=${TECNM_DB_PASSWORD:?Ejecuta scripts/setup-dev.sh primero}
+      Session__FrontendUrl: ${SESSION_FRONTEND_URL:-https://localhost:${TECNM_FRONTEND_PORT:-5173}}
+      Session__Issuer: ${SESSION_ISSUER:-}
+      Session__Audience: ${SESSION_AUDIENCE:-}
+      Session__SigningKey: ${SESSION_SIGNING_KEY:-}
+      Session__Google__ClientId: ${SESSION_GOOGLE_CLIENT_ID:-}
+      Session__Google__ClientSecret: ${SESSION_GOOGLE_CLIENT_SECRET:-}
+      Session__Microsoft__ClientId: ${SESSION_MICROSOFT_CLIENT_ID:-}
+      Session__Microsoft__ClientSecret: ${SESSION_MICROSOFT_CLIENT_SECRET:-}
+      Session__Microsoft__TenantId: ${SESSION_MICROSOFT_TENANT_ID:-}
       Cors__AllowedOrigins: https://localhost:${TECNM_FRONTEND_PORT:-5173},https://127.0.0.1:${TECNM_FRONTEND_PORT:-5173}
     ports:
       - "127.0.0.1:${TECNM_BACKEND_PORT:-7001}:8081"

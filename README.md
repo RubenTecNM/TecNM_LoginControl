@@ -1,8 +1,6 @@
-# TecNM Campus Monclova — Plantilla base de proyectos
+# TecNM Campus Monclova — LoginControl
 
-Base agnóstica para aplicaciones web y microservicios institucionales. Incluye arquitectura modular, backend .NET 10 con EF Core/PostgreSQL, frontend Vue 3/TypeScript y componentes visuales TecNM.
-
-Cada proyecto define su dominio, datos e integraciones. El template incluye una página pública de inicio, componentes reutilizables y un health check del backend.
+Proyecto derivado del template institucional para el inicio de sesión de usuarios registrados mediante Google o Microsoft. Incluye backend .NET 10 con EF Core/PostgreSQL, frontend Vue 3/TypeScript y componentes visuales TecNM.
 
 ## Arranque con Docker
 
@@ -30,11 +28,9 @@ docker compose stop
 
 El script guarda puertos y contraseña PostgreSQL en `.env`. `--project-name tecnm-mi-servicio` permite separar contenedores y volumen por proyecto. Los conflictos de puertos se reportan antes de construir o arrancar.
 
-## Base de datos de cada microservicio
+## Base de datos y sesión
 
-El setup carga PostgreSQL desde **[`database.sql`](database.sql) en la raíz**, mediante el inicializador de la imagen PostgreSQL. El archivo incluido solo tiene comentarios: no crea tablas ni datos.
-
-**Cada equipo debe completar ese SQL o modificar el mecanismo de inicialización** según su microservicio. El backend incluye un DbContext sin entidades para extenderlo con el modelo propio.
+El setup carga PostgreSQL desde **[`database.sql`](database.sql) en la raíz** al crear un volumen. El esquema incluye usuarios y cuatro tipos iniciales; no registra usuarios. La configuración de proveedores y credenciales se describe en [setup](docs/setup.md#inicio-de-sesión-institucional). Sin ella, el inicio de sesión no está disponible.
 
 El SQL se ejecuta únicamente al inicializar un volumen nuevo. Editarlo y repetir el setup no modifica una base existente: esos cambios requieren la estrategia de migraciones elegida por el proyecto. El volumen `postgres_data` conserva los datos entre reinicios.
 
@@ -49,6 +45,7 @@ API_URL=https://localhost:7001 bash scripts/smoke-template.sh
 # Comprobaciones locales:
 python3 scripts/check-dev-ports.py
 python3 scripts/check-setup.py
+bash scripts/test-session.sh  # PostgreSQL temporal y pruebas de sesión; requiere Docker y .NET
 npm --prefix frontend ci
 npm --prefix frontend run build
 (cd frontend && node scripts/check-layout.mjs)
@@ -61,11 +58,11 @@ Para ejecutar sin Docker, consultar los `.env.example` de backend/frontend. La e
 
 - [Reglas compartidas de desarrollo](AGENTS.md): punto de entrada desde la raíz; complementa las reglas locales de backend y frontend.
 - [Guía de contribución](CONTRIBUTING.md): flujo ODD con SDD, verificaciones por alcance y contribuciones desde un fork.
-- [Alcance del template](specs/template.spec.md).
+- [Alcance del proyecto](specs/template.spec.md) y [contrato de sesión](specs/session-control.spec.md).
 - [Arquitectura backend](BACKEND_ARCHITECTURE.md) y [reglas de desarrollo backend](backend/AGENTS.md).
 - [Arquitectura frontend](FRONTEND_ARCHITECTURE.md) y [reglas de desarrollo frontend](frontend/AGENTS.md).
 - [Sistema de diseño](frontend/DESIGN.md) y [componentes compartidos](frontend/src/shared/components/specs/components.spec.md).
-- [Layout persistente](frontend/src/app/layouts/mainLayout.spec.md), [tema](frontend/src/shared/composables/useTheme.spec.md), [inicio](frontend/src/modules/home/specs/home.spec.md) y [página 404](frontend/src/shared/views/specs/notFound.spec.md).
+- [Layout persistente](frontend/src/app/layouts/mainLayout.spec.md), [tema](frontend/src/shared/composables/useTheme.spec.md), [inicio de sesión](frontend/src/modules/session/specs/session.spec.md) y [página 404](frontend/src/shared/views/specs/notFound.spec.md).
 - [Contrato Docker](specs/docker.spec.md) y [health check](specs/health.spec.md).
 
 Aplicar SDD: actualizar la especificación correspondiente antes de modificar comportamiento o contratos. Documentar funcionalidades y criterios de aceptación en `specs/`; mantener los `AGENTS.md` centrados en patrones de diseño y reglas de desarrollo.

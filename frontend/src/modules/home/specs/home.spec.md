@@ -1,4 +1,6 @@
-# Inicio del template
+# Inicio del template (histórico)
+
+Esta spec describe la página neutral del template. En este proyecto derivado la ruta `/` se sustituye por el módulo de [sesión](../../session/specs/session.spec.md).
 
 ## Alcance
 

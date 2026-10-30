@@ -15,10 +15,10 @@
 - Requerir archivo regular `database.sql` en raíz antes de construir o arrancar servicios.
 - Montarlo de solo lectura en `/docker-entrypoint-initdb.d/01-schema.sql`.
 - La imagen PostgreSQL ejecuta ese SQL una vez durante la inicialización de un directorio de datos vacío.
-- Archivo con solo comentarios es válido; no crea tablas de aplicación.
-- No cargar semillas adicionales, comprobar tablas de negocio, usar `EnsureCreated` ni aplicar migraciones automáticas.
+- El SQL del proyecto crea las tablas y los datos semilla de tipos de usuario definidos en [la spec de sesión](session-control.spec.md).
+- No cargar semillas adicionales fuera de `database.sql`, comprobar tablas de negocio, usar `EnsureCreated` ni aplicar migraciones automáticas.
 - Volumen existente: conservar datos y esquema, sin volver a aplicar SQL. Editar el archivo no migra una base existente.
-- El equipo de cada microservicio rellena el SQL o adapta el mecanismo. Ver [guía de setup](../docs/setup.md).
+- Ver [guía de setup](../docs/setup.md) para configuración e inicialización.
 
 ## Script
 
@@ -34,8 +34,8 @@
 
 ## Aceptación
 
-1. Arranque con SQL de comentarios: tres servicios saludables, página pública y health check disponible.
-2. SQL de un microservicio se carga en un volumen nuevo sin exigir tablas institucionales.
+1. Arranque con SQL del proyecto: tres servicios saludables, página pública y health check disponible.
+2. El esquema y catálogo de tipos se cargan en un volumen nuevo sin crear usuarios.
 3. Reiniciar conserva datos; cambiar SQL no lo ejecuta de nuevo.
 4. SQL ausente o directorio: fallo claro antes de crear configuración o contenedores.
 5. Conservar comprobaciones de puertos y aislamiento de PostgreSQL.

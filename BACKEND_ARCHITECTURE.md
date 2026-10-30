@@ -1,7 +1,7 @@
 # Proyecto Web Backend
 
 ## Descripción
-**Proyecto Web Backend** es una API RESTful desarrollada sobre el ecosistema .NET. Es una base agnóstica para incorporar la lógica y persistencia de cada microservicio mediante una arquitectura modular. Incluye health check y un DbContext sin entidades.
+**Proyecto Web Backend** es una API RESTful desarrollada sobre el ecosistema .NET. Es el backend del proyecto derivado LoginControl, organizado en módulos. Incluye health check, sesión institucional y persistencia de usuarios y tipos.
 
 ---
 
@@ -53,4 +53,4 @@ Proyecto Web Backend/
 
 ## Inicialización y extensiones
 
-El esquema de cada microservicio se define en [`database.sql`](database.sql), ejecutado por PostgreSQL al inicializar un volumen nuevo. No se aplican migraciones ni se crean tablas desde el backend. Cada equipo completa el SQL y los mapeos EF o adapta ese mecanismo; ver [setup](docs/setup.md).
+El esquema del proyecto se define en [`database.sql`](database.sql), ejecutado por PostgreSQL al inicializar un volumen nuevo. No se aplican migraciones ni se crean tablas desde el backend. El SQL y los mapeos EF deben mantenerse alineados; ver [setup](docs/setup.md).
