@@ -12,6 +12,10 @@ La carga solicita credenciales de PostgreSQL por separado y no las guarda. Se in
 
 ## Interpretación de estados
 
+La opción «Limpiar contenedores y base de datos» solicita las credenciales administrativas y el destino, muestra una advertencia y pide escribir `ACEPTO` y el nombre exacto de la base. Solo entonces retira los contenedores del Compose y elimina la base sin recrearla. Si la base no existe, puede retirar los contenedores igualmente. No termina conexiones externas; si la eliminación de la base falla después de retirar los contenedores, informa que la limpieza quedó incompleta. Conserva imágenes y archivos de configuración.
+
+Durante la recreación se seleccionan los puertos antes de eliminar los contenedores. Se puede conservar el puerto publicado por el contenedor anterior; después de eliminarlo se comprueba de nuevo su disponibilidad antes de crear el reemplazo.
+
 Crear la base no permite comprobar la conexión con el usuario de aplicación hasta configurar `backend/.env`. PostgreSQL indica `SIN CONFIGURAR` si falta ese archivo o la cadena de conexión está incompleta; `SIN COMPROBAR` si falta `psql` o no puede leer el archivo; y `SIN CONEXIÓN` si el intento con configuración válida falla. El resumen muestra el motivo sin credenciales.
 
 `API / PostgreSQL` permanece `SIN COMPROBAR` hasta que haya configuración y el backend responda. Un backend detenido no implica un fallo de PostgreSQL. El estado de cada servicio consulta su nombre registrado en el `.env` raíz: `SIN CREAR` si no existe y `DETENIDO` si está apagado. Para un contenedor en ejecución verifica HTTP; un código de error como 500 se muestra como `ERROR HTTP` con el código, mientras que “no responde” indica fallo de conexión o timeout; también indica cuando falta `curl` o Docker no está disponible.
@@ -45,6 +49,7 @@ python3 scripts/check-control.py
 python3 scripts/check-containers.py
 python3 scripts/check-recreate.py
 python3 scripts/check-database.py
+python3 scripts/check-cleanup.py
 bash -n control.sh scripts/control/*.sh scripts/smoke-template.sh
 python3 -m py_compile scripts/control/*.py
 bash scripts/test-session.sh  # PostgreSQL temporal y pruebas backend; requiere Docker y .NET

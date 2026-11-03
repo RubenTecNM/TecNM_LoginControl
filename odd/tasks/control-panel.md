@@ -1,5 +1,17 @@
 # Panel de control local
 
+## Limpieza conjunta
+
+La opción 8 consulta el destino PostgreSQL y exige escribir `ACEPTO` y el nombre exacto de la base antes de retirar los contenedores de Compose y eliminar la base. Se conservan imágenes y archivos de configuración; un fallo posterior al retiro de contenedores se informa como limpieza incompleta. La conexión y la eliminación de PostgreSQL se comparten con el script de carga mediante `database-common.sh`.
+
+`check-cleanup.py` cubre confirmaciones, cancelación, base ausente, protección de bases de sistema y fallos con recursos simulados. Una prueba con dos contenedores y una base PostgreSQL temporales verificó que cancelar conserva los recursos y confirmar los elimina.
+
+## Revisión de opciones y separación de puertos
+
+Se separó la selección y validación de puertos de la creación. En recreación se solicita antes del borrado, se admite el puerto del contenedor anterior y se comprueba otra vez después de retirarlo. La cancelación durante la selección conserva los contenedores. La disponibilidad puede cambiar entre ambas comprobaciones; si ocurre, se detiene la creación.
+
+Las pruebas automatizadas cubren navegación, configuración, nombres, puertos, recreación y operaciones SQL con dependencias simuladas. Se verificaron además creación, cancelación y reemplazo de una base PostgreSQL temporal real. El ciclo de Docker se ensayó en un proyecto Compose temporal independiente con una imagen ligera, no con las imágenes de la aplicación.
+
 ## Objetivo y alcance autorizado
 
 Administrar frontend y backend en Docker y PostgreSQL en el anfitrión mediante un panel interactivo, con verificaciones y confirmación para recrear la base.

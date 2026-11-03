@@ -11,6 +11,8 @@ bash control.sh
 # El panel crea el .env raíz y ofrece el asistente para backend/.env.
 ```
 
+La opción «Limpiar contenedores y base de datos» retira los dos contenedores administrados y elimina la base elegida sin recrearlos. Advierte de la pérdida de datos y exige escribir `ACEPTO` y el nombre exacto de la base; conserva las imágenes y la configuración.
+
 Requiere Docker Compose, Python 3, OpenSSL, curl y el cliente `psql`. Al crear backend se elige o crea su `.env`; antes de arrancarlo se comprueba la conexión PostgreSQL; si falla, la operación se detiene. Los puertos publicados escuchan en las interfaces del servidor, sujetos a la red y el firewall. Configurar PostgreSQL para aceptar conexiones desde la red de Docker y autorizar al usuario de aplicación. El panel permite cargar `database.sql` con credenciales introducidas en cada ejecución, consultar estados y recrear contenedores o la base. Recrear la base elimina sus datos y requiere dos confirmaciones. Las opciones “Crear servicios”, “Iniciar servicios” y “Recrear servicios” permiten elegir frontend, backend o ambos. Al crear o recrear un contenedor se solicitan su nombre y el puerto publicado; se guarda junto a los puertos en el `.env` raíz. Iniciar y consultar estados utilizan los nombres guardados, sin pedirlos nuevamente. Recrear elimina los contenedores seleccionados y repite el flujo completo de creación. La navegación es con una tecla, sin Enter; “Ambos” inicia primero el backend. Consulte [la guía de setup](docs/setup.md#panel-con-postgresql-en-el-anfitrión).
 
 ## Base de datos y sesión
@@ -30,6 +32,7 @@ python3 scripts/check-control.py
 python3 scripts/check-containers.py
 python3 scripts/check-recreate.py
 python3 scripts/check-database.py
+python3 scripts/check-cleanup.py
 bash -n control.sh scripts/control/*.sh scripts/smoke-template.sh
 python3 -m py_compile scripts/control/*.py
 bash scripts/test-session.sh  # PostgreSQL temporal y pruebas de sesión; requiere Docker y .NET

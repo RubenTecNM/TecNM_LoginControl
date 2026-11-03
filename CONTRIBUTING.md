@@ -83,13 +83,14 @@ python3 scripts/check-control.py
 python3 scripts/check-containers.py
 python3 scripts/check-recreate.py
 python3 scripts/check-database.py
+python3 scripts/check-cleanup.py
 bash -n control.sh scripts/control/*.sh scripts/smoke-template.sh
 python3 -m py_compile scripts/control/*.py
 # Con backend/.env configurado:
 docker compose config --quiet
 ```
 
-`check-control.py` usa acciones simuladas y una pseudoterminal para verificar el menú sin administrar recursos reales. `check-database.py` simula psql para verificar consultas de existencia, confirmaciones y secuencias de creación y reemplazo. `check-recreate.py` verifica con Docker simulado la eliminación y creación nueva, incluyendo contenedores que Compose no reconoce por sus etiquetas y fallos que deben detener la operación. Verificar cambios de inicialización únicamente con una base aislada.
+`check-control.py` usa acciones simuladas y una pseudoterminal para verificar el menú sin administrar recursos reales. `check-database.py` simula psql para verificar consultas de existencia, confirmaciones y secuencias de creación y reemplazo. `check-cleanup.py` comprueba confirmaciones, cancelación y fallos de limpieza con Docker y psql simulados. `check-recreate.py` verifica con Docker simulado la eliminación y creación nueva, incluyendo contenedores que Compose no reconoce por sus etiquetas y fallos que deben detener la operación. Verificar cambios de inicialización únicamente con una base aislada.
 
 Con el backend disponible, ejecutar la comprobación HTTP básica; ajustar la URL si se cambió el puerto:
 

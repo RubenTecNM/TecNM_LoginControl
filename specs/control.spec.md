@@ -8,7 +8,7 @@ La carga de `database.sql` solicita conexión y contraseña de PostgreSQL sin gu
 
 ## Navegación del panel
 
-- Menú principal: crear servicios, iniciar servicios, recrear servicios, cargar base de datos, recrear base de datos, detener contenedores, registros, actualizar estado y salir.
+- Menú principal: crear servicios, iniciar servicios, recrear servicios, cargar base de datos, recrear base de datos, detener contenedores, registros, limpiar contenedores y base, actualizar estado y salir.
 - Crear, iniciar y recrear abren un submenú con frontend, backend, ambos y volver. Ambos inicia primero backend y después frontend; si falla un paso se detiene la operación y se muestra el fallo.
 - En una terminal, las opciones se ejecutan al presionar su tecla, sin Enter. Los campos de texto y las confirmaciones de borrado siguen requiriendo Enter. Con entrada redirigida, las opciones se leen por línea.
 - El panel distingue encabezado, estados y grupos de acciones. Usa colores solo en una terminal compatible y respeta `NO_COLOR`; los estados incluyen texto legible sin color. Los submenús siempre permiten volver con `0`.
@@ -32,6 +32,10 @@ Antes de crear, iniciar o recrear backend (también con “Ambos”), se usa `ba
 
 Al crear servicios, si `backend/.env` existe, se anuncia y se permite usarlo, iniciar el asistente para crear uno nuevo o cancelar. El reemplazo se confirma al guardar y es atómico; cancelar conserva el archivo anterior. Esta selección se realiza una sola vez por acción del panel, incluso al elegir ambos servicios.
 
+## Limpieza de contenedores y base
+
+La opción «Limpiar contenedores y base de datos» elimina los contenedores de frontend y backend administrados por el Compose del proyecto y la base elegida en PostgreSQL; no recrea recursos ni elimina imágenes, archivos de configuración o bases ajenas. Solicita conexión y consulta la existencia de la base antes de modificar recursos. Muestra los nombres de los contenedores y el destino, advierte de la pérdida de datos y requiere escribir `ACEPTO` y después el nombre exacto de la base, cada uno con Enter. Cualquier otra respuesta o fin de entrada cancela sin modificar recursos. Rechaza las bases de sistema. Si la base no existe, informa y permite limpiar los contenedores tras las mismas confirmaciones. Primero retira los contenedores y luego elimina la base; si falla un paso, informa que la limpieza puede haber quedado incompleta. No termina conexiones externas a PostgreSQL.
+
 ## Carga y destino de SQL
 
 “Cargar base de datos” y “Recrear base de datos” solicitan un nombre `snake_case` de hasta 63 caracteres y consultan su existencia en el PostgreSQL local con las credenciales administrativas introducidas para esa ejecución. Un fallo de conexión o consulta detiene la operación; no se interpreta como base inexistente. Se rechazan `postgres`, `template0` y `template1`.
@@ -54,6 +58,8 @@ Al crear o repetir la creación desde Recrear se solicita el nombre de cada serv
 Los nombres deben ser válidos para Docker, distintos entre ambos servicios y no estar ocupados por un contenedor ajeno al servicio. Ante un conflicto se solicita otro. Iniciar y consultar estados consumen los nombres registrados en el `.env` raíz y no solicitan nombres. Iniciar arranca el contenedor existente, sin construir ni crearlo; si falta, indica usar Crear servicios. Recrear vuelve al flujo completo de creación: prepara configuración y nombres, elimina los contenedores seleccionados y construye contenedores nuevos. Los nombres registrados se ofrecen como predeterminados. Se comprueba que el contenedor anterior se haya eliminado antes de continuar; un fallo de eliminación impide la creación. Cancelar la preparación conserva los contenedores. El estado inspecciona el contenedor por su nombre y distingue sin crear, detenido y en ejecución antes de verificar HTTP. Compose usa los nombres guardados; el proxy conserva el nombre interno del servicio `backend`.
 
 ## Confirmación de recreación
+
+La selección de puertos se completa antes de eliminar contenedores; terminar la entrada durante esa selección conserva los contenedores y restaura los nombres y puertos registrados. El puerto ocupado por el propio contenedor que se va a recrear puede seleccionarse y se vuelve a comprobar después de retirarlo, antes de crear el reemplazo.
 
 Antes de abrir los asistentes o modificar configuración para recrear, el panel muestra los nombres registrados de los contenedores seleccionados y pregunta `¿Estás de acuerdo? [s/N]`. Con ambos servicios muestra los dos nombres. Solo `s` o `S` confirma; cualquier otra respuesta o fin de entrada cancela sin ejecutar asistentes, borrar, crear ni guardar configuración. La selección respeta la lectura de una tecla del panel.
 
@@ -85,6 +91,7 @@ Esta tabla resume el comportamiento acordado. Las comprobaciones se realizan sin
 | Se confirma la recreación | Confirmar y completar la preparación | Se eliminan los contenedores seleccionados y se crean de nuevo; si la eliminación falla, no se continúa con la creación. |
 | Se detienen los servicios | Elegir detener contenedores | Se detienen los servicios administrados por Compose. |
 | Se consultan registros | Elegir ver registros | Se muestran registros en tiempo real; `Ctrl+C` permite volver al panel. |
+| Se solicita limpiar contenedores y base | Introducir el destino y escribir ambas confirmaciones | Se retiran los contenedores de Compose y se elimina la base sin recrearlos; cancelar no modifica recursos. |
 | Se solicita cargar o recrear la base | Capturar credenciales y nombre de destino | Se consulta su existencia en PostgreSQL; las credenciales se usan solo durante la operación. |
 | La base destino no existe | Confirmar su creación | Se crea y después se aplica `database.sql`; al cancelar no se modifica. |
 | La base destino existe | Confirmar pérdida de datos y escribir su nombre exacto | Se elimina, se crea de nuevo y se carga el SQL; sin ambas confirmaciones no se modifica. |

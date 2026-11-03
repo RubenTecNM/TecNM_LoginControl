@@ -34,7 +34,7 @@ manage_services() {
     done
     return 0
   fi
-  local -a previous_names=()
+  local -a previous_names=() previous_settings=("$TECNM_FRONTEND_PORT" "$TECNM_BACKEND_PORT" "$TECNM_FRONTEND_CONTAINER_NAME" "$TECNM_BACKEND_CONTAINER_NAME")
   for service in "${services[@]}"; do
     case $service in
       frontend) previous_names+=("$TECNM_FRONTEND_CONTAINER_NAME");;
@@ -54,6 +54,20 @@ manage_services() {
   bash scripts/control/configure-containers.sh "${services[@]}" || return
   load_settings || return
   if [[ $mode == recreate ]]; then
+    local index=0
+    for service in "${services[@]}"; do
+      if bash scripts/control/configure-port.sh "$service" --recreate "${previous_names[index]}"; then
+        :
+      else
+        local result=$?
+        TECNM_FRONTEND_PORT=${previous_settings[0]} TECNM_BACKEND_PORT=${previous_settings[1]}
+        TECNM_FRONTEND_CONTAINER_NAME=${previous_settings[2]} TECNM_BACKEND_CONTAINER_NAME=${previous_settings[3]}
+        save_settings || return 1
+        return "$result"
+      fi
+      ((index+=1))
+    done
+    load_settings || return
     printf '\n  Eliminando contenedores para volver a crearlos: %s\n' "${services[*]}"
     "${COMPOSE[@]}" rm -sf "${services[@]}" || return
     # El nombre registrado también puede existir sin etiquetas de este Compose.
@@ -74,7 +88,11 @@ manage_services() {
     done
   fi
   for service in "${services[@]}"; do
-    bash scripts/control/create.sh "$service" --prepared || return
+    if [[ $mode == recreate ]]; then
+      bash scripts/control/create.sh "$service" --ports-prepared || return
+    else
+      bash scripts/control/create.sh "$service" --prepared || return
+    fi
     load_settings || return 1
   done
 }
@@ -108,6 +126,7 @@ while true; do
   printf '  %sHERRAMIENTAS%s\n' "$muted" "$reset"
   menu_item 6 'Detener contenedores' "$warning"
   menu_item 7 'Ver registros'
+  menu_item 8 'Limpiar contenedores y base de datos · elimina datos' "$danger"
   menu_item R 'Actualizar estado'
   separator
   menu_item 0 'Salir'
@@ -125,6 +144,7 @@ while true; do
       "${COMPOSE[@]}" logs --tail=100 -f
       trap - INT
       pause_panel;;
+    8) run_action bash scripts/control/cleanup.sh;;
     r|R) :;;
     0) printf '\n  Hasta luego.\n'; exit 0;;
     *) printf '\n  %sOpción no válida.%s\n' "$warning" "$reset"; pause_panel;;

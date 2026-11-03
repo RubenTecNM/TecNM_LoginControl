@@ -179,9 +179,11 @@ sys.exit(0 if ready else 1)
 
     for name, body in {
         'configure-containers.sh': 'exit 0',
+        'configure-port.sh': 'exit 0',
         'create.sh': 'echo "create $1" >> "$ACTION_LOG"; [[ ${FAIL_SERVICE:-} != "$1" ]]',
         'start.sh': 'echo "start $1" >> "$ACTION_LOG"; [[ ${FAIL_SERVICE:-} != "$1" ]]',
         'database.sh': 'echo "database $1" >> "$ACTION_LOG"',
+        'cleanup.sh': 'echo cleanup >> "$ACTION_LOG"',
         'status.sh': 'echo "ESTADO SIMULADO"',
     }.items():
         (root / 'scripts/control' / name).write_text('#!/usr/bin/env bash\n' + body + '\n')
@@ -222,8 +224,8 @@ sys.exit(0 if ready else 1)
             ['create ' + name for name in names])
     run('1\n0\n2\n0\n3\n0\nR\nx\n0\n', [])
     run('1\nx\n2\n1\n0\n', ['create backend'])
-    run('4\n5\n6\n7\n0\n', ['database load', 'database recreate',
-        'compose -f compose.yaml stop', 'compose -f compose.yaml logs --tail=100 -f'])
+    run('4\n5\n6\n7\n8\n0\n', ['database load', 'database recreate',
+        'compose -f compose.yaml stop', 'compose -f compose.yaml logs --tail=100 -f', 'cleanup'])
     output = run('1\n3\n1\n0\n', ['create backend'], fail='backend')
     assert 'La acción no se completó' in output
     result = subprocess.run(['bash', 'control.sh'], cwd=root, env=env, input='',

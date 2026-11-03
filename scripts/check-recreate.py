@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory() as directory:
     env = dict(os.environ, PATH=f'{binaries}:{os.environ["PATH"]}', ACTION_LOG=str(log), STATE_FILE=str(state))
     for name, body in {
         'prepare-services.sh': 'echo prepare >> "$ACTION_LOG"; exit "${PREPARE_RESULT:-0}"',
-        'configure-containers.sh': 'echo names >> "$ACTION_LOG"; exit "${NAMES_RESULT:-0}"',
+        'configure-containers.sh': 'echo names >> "$ACTION_LOG"; if [[ ${CHANGE_NAME:-} ]]; then python3 scripts/control/settings.py save "$TECNM_FRONTEND_PORT" "$TECNM_BACKEND_PORT" changed_frontend "$TECNM_BACKEND_CONTAINER_NAME"; fi; exit "${NAMES_RESULT:-0}"',
         'status.sh': 'echo "ESTADO SIMULADO"',
     }.items():
         (root / 'scripts/control' / name).write_text('#!/usr/bin/env bash\n' + body + '\n')
@@ -100,6 +100,14 @@ raise AssertionError(args)
             assert 'Operación cancelada' in output
             assert json.loads(state.read_text()) == {front: True, back: True}
             assert (root / '.env').read_bytes() == previous_settings
+    state.write_text(json.dumps({front: True, back: True}))
+    log.write_text('')
+    cancelled_port = subprocess.run(['bash', 'control.sh'], cwd=root, env=dict(env, CHANGE_NAME='1'),
+        input='3\n1\ns\n', text=True, capture_output=True, timeout=10)
+    assert 'Operación cancelada' in cancelled_port.stdout
+    assert log.read_text().splitlines() == ['prepare', 'names']
+    assert json.loads(state.read_text()) == {front: True, back: True}
+    assert (root / '.env').read_bytes() == previous_settings
     actions, _ = run('1', confirm='S')
     assert 'build ' + front in actions
     for extra in [dict(FAIL_REMOVE='1'), dict(KEEP_CONTAINER='1'), dict(PREPARE_RESULT='1'), dict(NAMES_RESULT='2')]:
