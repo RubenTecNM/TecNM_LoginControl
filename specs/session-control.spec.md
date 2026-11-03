@@ -40,7 +40,7 @@ Respuesta de sesión `200`, JSON:
 }
 ```
 
-`maternalLastName` puede ser `null` o cadena vacía. `expiresAt` es la fecha UTC correspondiente al `exp` del JWT. Las respuestas de sesión y errores de autenticación no deben almacenarse en caché. Fallos no revelan si existe una cuenta ni exponen excepciones. Los errores de configuración o disponibilidad del proveedor se distinguen de un rechazo de identidad en el servidor, sin mostrar detalles sensibles al usuario.
+`maternalLastName` puede ser `null` o cadena vacía. `expiresAt` es la fecha UTC correspondiente al `exp` del JWT. Las respuestas de sesión y errores de autenticación no deben almacenarse en caché. Fallos no revelan si existe una cuenta ni exponen excepciones. Con credenciales de proveedor ausentes, vacías o con espacios, el login responde `503` y el health público sigue disponible. Los errores de configuración o disponibilidad del proveedor se distinguen de un rechazo de identidad en el servidor, sin mostrar detalles sensibles al usuario.
 
 El backend emite un JWT propio con `sub` igual al UUID interno, `iss`, `aud`, `iat`, `exp` y `user_type` con el código estable. Dura una hora desde su emisión; firma, emisor, audiencia y vencimiento se validan en cada consulta protegida. No contiene correos, nombres, identificadores externos ni secretos. No se introduce en URLs ni es accesible a JavaScript: se transporta en cookie `HttpOnly` y `Secure`. La cookie usa `SameSite=Lax`. El cierre de sesión exige un encabezado `Origin` que coincida con el origen HTTPS del frontend; un origen ausente o diferente responde `403`. Para acceso entre orígenes se permiten credenciales únicamente desde los orígenes CORS configurados.
 

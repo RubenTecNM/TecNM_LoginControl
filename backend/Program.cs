@@ -61,6 +61,19 @@ app.UseHttpsRedirection();
 app.UseCors(FrontendCors);
 app.UseAuthentication();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/api/health/database", async (TecNMDbContext db, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        return await db.Database.CanConnectAsync(cancellationToken)
+            ? Results.Ok(new { status = "ok" })
+            : Results.Json(new { status = "error" }, statusCode: 503);
+    }
+    catch (Exception)
+    {
+        return Results.Json(new { status = "error" }, statusCode: 503);
+    }
+});
 app.MapControllers();
 
 app.Run();

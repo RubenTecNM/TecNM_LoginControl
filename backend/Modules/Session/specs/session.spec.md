@@ -13,7 +13,7 @@ Estado: implementado; la prueba con proveedores reales está pendiente de config
 
 ## Persistencia
 
-`database.sql` inicializa las siguientes tablas en un volumen nuevo; su modificación no migra volúmenes existentes. El mecanismo para actualizar bases existentes debe definirse antes de aplicarlo; no se aplican migraciones ni cambios automáticos a bases reales como prueba.
+`database.sql` inicializa las siguientes tablas mediante carga explícita en una base preparada; su modificación no migra bases existentes. El mecanismo para actualizar bases existentes debe definirse antes de aplicarlo; no se aplican migraciones ni cambios automáticos a bases reales como prueba.
 
 - `user_types`: `id` UUID, clave primaria; `code` único y estable; `name` no vacío para mostrar. Inicializar los códigos `superadmin`, `admin`, `docente`, `default`, con nombres visibles `Superadministrador`, `Administrador`, `Docente`, `Predeterminado`. Un código no cambia al modificar la etiqueta.
 - `users`: `id` UUID primario; `user_type_id` UUID obligatorio con clave foránea a `user_types`; `first_names` varchar(150) y `paternal_last_name` varchar(100), obligatorios y no vacíos ni solo espacios; `maternal_last_name` varchar(100), nullable y admite cadena vacía; `google_email` y `microsoft_email` varchar(254), nullable; `google_subject` varchar(255), nullable; `microsoft_tenant_id` y `microsoft_object_id` UUID, nullable.
@@ -24,4 +24,8 @@ Estado: implementado; la prueba con proveedores reales está pendiente de config
 
 ## Verificación
 
-Construir el backend y comprobar el contrato compartido con base aislada e identidades simuladas. Cubrir ambos proveedores, cuentas no registradas, correos e identificadores incorrectos, correo ausente, invitado o `acct` ausente, dominio y organización incorrectos, firma y claims inválidos, correlación, repetición de callback, vencimiento, CSRF y cierre de sesión. Comprobar restricciones, datos semilla y unicidad en un volumen nuevo aislado, así como cambio de tipo y eliminación del usuario. Documentar por separado la prueba con proveedores reales cuando se disponga de configuración y cuentas de prueba.
+Construir el backend y comprobar el contrato compartido con base aislada e identidades simuladas. Cubrir ambos proveedores, cuentas no registradas, correos e identificadores incorrectos, correo ausente, invitado o `acct` ausente, dominio y organización incorrectos, firma y claims inválidos, correlación, repetición de callback, vencimiento, CSRF y cierre de sesión. Comprobar restricciones, datos semilla y unicidad en una base nueva aislada, así como cambio de tipo y eliminación del usuario. Documentar por separado la prueba con proveedores reales cuando se disponga de configuración y cuentas de prueba.
+
+## Proveedores pendientes
+
+Credenciales OIDC ausentes, vacías o con espacios no registran un proveedor utilizable. El intento de login de ese proveedor responde 503 sin impedir el health público ni el resto de rutas ajenas al login.

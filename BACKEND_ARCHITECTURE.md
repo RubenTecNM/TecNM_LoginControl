@@ -53,4 +53,4 @@ Proyecto Web Backend/
 
 ## Inicialización y extensiones
 
-El esquema del proyecto se define en [`database.sql`](database.sql), ejecutado por PostgreSQL al inicializar un volumen nuevo. No se aplican migraciones ni se crean tablas desde el backend. El SQL y los mapeos EF deben mantenerse alineados; ver [setup](docs/setup.md).
+El esquema del proyecto se define en [`database.sql`](database.sql), aplicado explícitamente a PostgreSQL del anfitrión mediante el panel. No se aplican migraciones ni se crean tablas desde el backend. El SQL y los mapeos EF deben mantenerse alineados; ver [setup](docs/setup.md).

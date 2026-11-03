@@ -51,9 +51,9 @@ Si no está disponible, el agente debe informarlo y compartir este comando. Mien
 
 ## Entorno y persistencia
 
-Seguir los prerrequisitos y comandos del [README](README.md) y la [guía de setup](docs/setup.md). Docker Compose administra PostgreSQL, backend y frontend; la ejecución manual requiere herramientas y una conexión de base propias.
+Seguir los prerrequisitos y comandos del [README](README.md) y la [guía de setup](docs/setup.md). Docker Compose administra backend y frontend; PostgreSQL se ejecuta en el anfitrión. La ejecución manual requiere herramientas y una conexión de base propias.
 
-`database.sql` en raíz pertenece al microservicio derivado. Su equipo debe completarlo o adaptar el mecanismo de inicialización. Solo se ejecuta al inicializar un volumen nuevo: editarlo y repetir el setup no migra una base existente.
+`database.sql` en raíz pertenece al microservicio derivado. Su equipo debe completarlo o adaptar el mecanismo de inicialización. Se ejecuta mediante carga explícita desde el panel: editarlo no migra una base existente.
 
 Evitar conversiones masivas de finales de línea y cambios a `core.autocrlf` para resolver avisos aislados. Revisar el diff y conservar LF en scripts `.sh`. Una política compartida de normalización debe definirse en `.gitattributes` como un cambio explícito, no asumirse a partir de la configuración de un equipo.
 
@@ -79,14 +79,17 @@ Instalar dependencias frontend con `npm --prefix frontend ci` cuando sea necesar
 Para setup e infraestructura:
 
 ```bash
-python3 scripts/check-dev-ports.py
-python3 scripts/check-setup.py
-bash -n scripts/setup-dev.sh scripts/smoke-template.sh
-# Con la configuración .env preparada:
+python3 scripts/check-control.py
+python3 scripts/check-containers.py
+python3 scripts/check-recreate.py
+python3 scripts/check-database.py
+bash -n control.sh scripts/control/*.sh scripts/smoke-template.sh
+python3 -m py_compile scripts/control/*.py
+# Con backend/.env configurado:
 docker compose config --quiet
 ```
 
-`check-setup.py` simula Docker; no demuestra que PostgreSQL haya ejecutado el SQL. Verificar cambios de inicialización en un proyecto y volumen aislados cuando corresponda.
+`check-control.py` usa acciones simuladas y una pseudoterminal para verificar el menú sin administrar recursos reales. `check-database.py` simula psql para verificar consultas de existencia, confirmaciones y secuencias de creación y reemplazo. `check-recreate.py` verifica con Docker simulado la eliminación y creación nueva, incluyendo contenedores que Compose no reconoce por sus etiquetas y fallos que deben detener la operación. Verificar cambios de inicialización únicamente con una base aislada.
 
 Con el backend disponible, ejecutar la comprobación HTTP básica; ajustar la URL si se cambió el puerto:
 

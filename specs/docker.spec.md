@@ -2,40 +2,18 @@
 
 ## Contrato
 
-- Un Compose con `frontend`, `backend` y `db`; proyecto predeterminado `tecnm-template`.
-- Frontend Vue compilado con Node dentro de Docker y servido con Nginx HTTPS. `/api` se reenvía al backend.
-- Backend .NET 10 compilado en Docker, runtime separado y HTTPS.
-- PostgreSQL sin puerto publicado; comparte red `internal: true` únicamente con backend.
-- Volumen `postgres_data` persistente; base `tecnm_template`, usuario `tecnm_app`.
-- Puerto frontend 5173 y backend 7001, publicados solo en `127.0.0.1`; configurables por flags y `.env`.
-- Certificado autofirmado y contraseña PostgreSQL generados fuera de Git.
-
-## Inicialización SQL
-
-- Requerir archivo regular `database.sql` en raíz antes de construir o arrancar servicios.
-- Montarlo de solo lectura en `/docker-entrypoint-initdb.d/01-schema.sql`.
-- La imagen PostgreSQL ejecuta ese SQL una vez durante la inicialización de un directorio de datos vacío.
-- El SQL del proyecto crea las tablas y los datos semilla de tipos de usuario definidos en [la spec de sesión](session-control.spec.md).
-- No cargar semillas adicionales fuera de `database.sql`, comprobar tablas de negocio, usar `EnsureCreated` ni aplicar migraciones automáticas.
-- Volumen existente: conservar datos y esquema, sin volver a aplicar SQL. Editar el archivo no migra una base existente.
-- Ver [guía de setup](../docs/setup.md) para configuración e inicialización.
-
-## Script
-
-`bash scripts/setup-dev.sh [--frontend-port N] [--backend-port N] [--project-name tecnm-nombre] [--check-ports]`.
-
-- Requiere Docker Compose, Python 3 y OpenSSL; valida herramientas, daemon, nombre y puertos distintos entre 1 y 65535.
-- Verifica puertos IPv4/IPv6; permite reutilizar los de sus propios contenedores.
-- Puerto ocupado: avisa y propone alternativa. En terminal permite elegir; sin terminal termina con código 2. No mata procesos ni cambia puertos silenciosamente.
-- `--check-ports`: solo comprueba puertos, sin escribir configuración ni cambiar contenedores.
-- Preserva contraseña existente y ajustes ajenos en `.env`.
-- Construye, repite comprobación de puertos e inicia servicios por healthchecks.
-- Error Docker: muestra aviso y comando de logs; conserva volumen. No reintenta SQL ni repara inicializaciones parciales.
+- `compose.yaml` administra únicamente `frontend` y `backend` en contenedores independientes. PostgreSQL se ejecuta en el sistema anfitrión.
+- Frontend Vue se compila en Docker y Nginx lo sirve por HTTPS; `/api` se reenvía al backend.
+- Backend .NET se compila en Docker y publica HTTPS. Usa `backend/.env` para la conexión PostgreSQL y la configuración de sesión; `host.docker.internal` resuelve al anfitrión mediante Docker.
+- Puertos predeterminados 5173 y 7001, publicados en todas las interfaces disponibles del anfitrión (`0.0.0.0` y, donde Docker lo admita, IPv6). El panel siempre solicita el puerto publicado y propone el guardado; si está ocupado solicita otro y conserva la selección en `.env` de la raíz. Los nombres de contenedores se eligen únicamente al crear servicios en el panel y se guardan como `TECNM_FRONTEND_CONTAINER_NAME` y `TECNM_BACKEND_CONTAINER_NAME`.
+- Certificados locales fuera de Git. La conexión de PostgreSQL, sus permisos y su persistencia son responsabilidad de la instalación del anfitrión.
+- El panel descrito en [control.spec.md](control.spec.md) administra los contenedores, la carga explícita de SQL y las comprobaciones de estado. Reiniciar contenedores no ejecuta `database.sql`.
 
 ## Aceptación
 
-1. Arranque con SQL del proyecto: tres servicios saludables, página pública y health check disponible.
-2. El esquema y catálogo de tipos se cargan en un volumen nuevo sin crear usuarios.
-3. Reiniciar conserva datos; cambiar SQL no lo ejecuta de nuevo.
-4. SQL ausente o directorio: fallo claro antes de crear configuración o contenedores.
-5. Conservar comprobaciones de puertos y aislamiento de PostgreSQL.
+1. El Compose define solamente frontend y backend; PostgreSQL no se inicia en Docker como parte del despliegue.
+2. Los contenedores publican las aplicaciones por HTTPS y el backend puede conectarse a PostgreSQL del anfitrión cuando está configurado y autorizado.
+3. La carga de `database.sql` se inicia explícitamente y recrear la base exige confirmación; reiniciar contenedores no modifica la base.
+4. El panel comprueba puertos y disponibilidad según [control.spec.md](control.spec.md).
+
+Los puertos publicados deben poder recibir conexiones por las interfaces de red del anfitrión, sujeto a la configuración de red y firewall. Antes de crear se comprueba disponibilidad en direcciones comodín IPv4 e IPv6; un puerto ocupado en cualquier interfaz debe rechazarse. La configuración CORS y los certificados no se modifican como parte de este cambio.

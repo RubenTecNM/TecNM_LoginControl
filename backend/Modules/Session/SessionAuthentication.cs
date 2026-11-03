@@ -19,11 +19,18 @@ public static class SessionAuthentication
     private static void AddProvider(Microsoft.AspNetCore.Authentication.AuthenticationBuilder authentication, IConfiguration configuration,
         string scheme, string provider, string authority)
     {
+        var clientId = configuration[$"Session:{scheme}:ClientId"];
+        var clientSecret = configuration[$"Session:{scheme}:ClientSecret"];
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+        {
+            return;
+        }
+
         authentication.AddOpenIdConnect(scheme, options =>
         {
             options.Authority = authority;
-            options.ClientId = configuration[$"Session:{scheme}:ClientId"] ?? "not-configured";
-            options.ClientSecret = configuration[$"Session:{scheme}:ClientSecret"] ?? "not-configured";
+            options.ClientId = clientId;
+            options.ClientSecret = clientSecret;
             options.CallbackPath = $"/api/session/callback/{provider}";
             options.SignInScheme = "oidc-temporary";
             options.ResponseType = OpenIdConnectResponseType.Code;

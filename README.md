@@ -2,39 +2,22 @@
 
 Proyecto derivado del template institucional para el inicio de sesión de usuarios registrados mediante Google o Microsoft. Incluye backend .NET 10 con EF Core/PostgreSQL, frontend Vue 3/TypeScript y componentes visuales TecNM.
 
-## Arranque con Docker
+## Panel de control local
 
-Requisitos: Docker con Compose, Python 3 y OpenSSL. No requiere Node ni .NET en el host.
-
-```bash
-bash scripts/setup-dev.sh
-```
-
-| Servicio | Acceso predeterminado |
-| --- | --- |
-| `tecnm-template-frontend` | https://localhost:5173 |
-| `tecnm-template-backend` | https://localhost:7001/api/health |
-| `tecnm-template-postgres` | `db:5432`, solo en la red privada de datos |
-
-Frontend y backend publican en `127.0.0.1`; el proxy frontend reenvía `/api` al backend. HTTPS usa un certificado local autofirmado generado en `.docker/certs/`; el navegador puede pedir aceptarlo.
+El panel administra frontend y backend en contenedores y utiliza PostgreSQL instalado en el sistema anfitrión:
 
 ```bash
-bash scripts/setup-dev.sh --frontend-port 5180 --backend-port 7010
-bash scripts/setup-dev.sh --frontend-port 5180 --backend-port 7010 --check-ports
-docker compose ps
-docker compose logs -f
-docker compose stop
+bash control.sh
+# El panel crea el .env raíz y ofrece el asistente para backend/.env.
 ```
 
-El script guarda puertos y contraseña PostgreSQL en `.env`. `--project-name tecnm-mi-servicio` permite separar contenedores y volumen por proyecto. Los conflictos de puertos se reportan antes de construir o arrancar.
+Requiere Docker Compose, Python 3, OpenSSL, curl y el cliente `psql`. Al crear backend se elige o crea su `.env`; antes de arrancarlo se comprueba la conexión PostgreSQL; si falla, la operación se detiene. Los puertos publicados escuchan en las interfaces del servidor, sujetos a la red y el firewall. Configurar PostgreSQL para aceptar conexiones desde la red de Docker y autorizar al usuario de aplicación. El panel permite cargar `database.sql` con credenciales introducidas en cada ejecución, consultar estados y recrear contenedores o la base. Recrear la base elimina sus datos y requiere dos confirmaciones. Las opciones “Crear servicios”, “Iniciar servicios” y “Recrear servicios” permiten elegir frontend, backend o ambos. Al crear o recrear un contenedor se solicitan su nombre y el puerto publicado; se guarda junto a los puertos en el `.env` raíz. Iniciar y consultar estados utilizan los nombres guardados, sin pedirlos nuevamente. Recrear elimina los contenedores seleccionados y repite el flujo completo de creación. La navegación es con una tecla, sin Enter; “Ambos” inicia primero el backend. Consulte [la guía de setup](docs/setup.md#panel-con-postgresql-en-el-anfitrión).
 
 ## Base de datos y sesión
 
-El setup carga PostgreSQL desde **[`database.sql`](database.sql) en la raíz** al crear un volumen. El esquema incluye usuarios y cuatro tipos iniciales; no registra usuarios. La configuración de proveedores y credenciales se describe en [setup](docs/setup.md#inicio-de-sesión-institucional). Sin ella, el inicio de sesión no está disponible.
+El panel consulta si la base PostgreSQL indicada existe: ofrece crearla si falta o reemplazarla tras advertir y confirmar la pérdida de datos si ya existe. Después carga [`database.sql`](database.sql). El esquema incluye usuarios y cuatro tipos iniciales; no registra usuarios. La configuración de proveedores y credenciales se describe en [setup](docs/setup.md#inicio-de-sesión-institucional). Sin ella, el inicio de sesión no está disponible y responde 503; el health permanece disponible.
 
-El SQL se ejecuta únicamente al inicializar un volumen nuevo. Editarlo y repetir el setup no modifica una base existente: esos cambios requieren la estrategia de migraciones elegida por el proyecto. El volumen `postgres_data` conserva los datos entre reinicios.
-
-Consultar [documentación del setup](docs/setup.md) para opciones, inicialización, errores SQL y persistencia.
+Editar el SQL no modifica una base existente; esos cambios requieren una migración explícita. Reiniciar o reconstruir contenedores no ejecuta el SQL ni elimina datos.
 
 ## Desarrollo y verificación
 
@@ -43,8 +26,12 @@ Consultar [documentación del setup](docs/setup.md) para opciones, inicializaci�
 API_URL=https://localhost:7001 bash scripts/smoke-template.sh
 
 # Comprobaciones locales:
-python3 scripts/check-dev-ports.py
-python3 scripts/check-setup.py
+python3 scripts/check-control.py
+python3 scripts/check-containers.py
+python3 scripts/check-recreate.py
+python3 scripts/check-database.py
+bash -n control.sh scripts/control/*.sh scripts/smoke-template.sh
+python3 -m py_compile scripts/control/*.py
 bash scripts/test-session.sh  # PostgreSQL temporal y pruebas de sesión; requiere Docker y .NET
 npm --prefix frontend ci
 npm --prefix frontend run build
@@ -52,7 +39,7 @@ npm --prefix frontend run build
 dotnet build backend/TecNM.Api.csproj
 ```
 
-Para ejecutar sin Docker, consultar los `.env.example` de backend/frontend. La ejecución manual del backend requiere una conexión PostgreSQL propia; el contenedor de base de datos no publica puerto.
+Para ejecutar sin Docker, consultar los `.env.example` de backend/frontend. La ejecución manual del backend requiere una conexión PostgreSQL propia.
 
 ## Arquitectura y contribución
 
