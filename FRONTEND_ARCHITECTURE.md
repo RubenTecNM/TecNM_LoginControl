@@ -1,7 +1,7 @@
 # Proyecto Web Frontend
 
 ## ¿Qué es este proyecto?
-Es una aplicación web de tipo **Single-Page Application (SPA)**. Es el frontend de LoginControl. Incluye inicio de sesión, bienvenida, layout persistente, tema y componentes compartidos.
+Es una aplicación web de tipo **Single-Page Application (SPA)**. Es el frontend de LoginControl. Incluye inicio de sesión, bienvenida con accesos a módulos, administración exclusiva de superadmin, layout persistente, tema y componentes compartidos. `modules/modules` exporta su panel y mantiene su cliente y tipos locales.
 
 ---
 

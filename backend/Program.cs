@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TecNM.Api.Data;
 using TecNM.Api.Modules.Session;
+using TecNM.Api.Modules.ModuleAccess;
 
 const string FrontendCors = "Frontend";
 
@@ -50,6 +51,8 @@ foreach (var origin in allowedOrigins)
 }
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<ModuleAdminService>();
+builder.Services.AddScoped<ModuleExchangeService>();
 builder.Services.AddSessionAuthentication(configuration);
 builder.Services.AddDbContext<TecNMDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddCors(options => options.AddPolicy(FrontendCors, policy =>

@@ -4,9 +4,9 @@ Estado: implementado; las pruebas con proveedores reales requieren configuració
 
 ## Alcance y reglas
 
-Una persona previamente registrada puede iniciar sesión con Google o Microsoft y ver una bienvenida con su nombre y tipo registrados. Cada usuario tiene exactamente un tipo: `superadmin`, `admin`, `docente` o `default`. El tipo no concede permisos ni cambia las funciones disponibles en esta etapa.
+Una persona previamente registrada puede iniciar sesión con Google o Microsoft y ver una bienvenida con su nombre y tipo registrados. Cada usuario tiene exactamente un tipo: `superadmin`, `admin`, `docente` o `default`. El tipo `superadmin` permite administrar módulos y asignaciones conforme al [contrato de módulos](module-access.spec.md). Los demás tipos no conceden funciones administrativas.
 
-No hay autorregistro, administración de usuarios, edición de correos, autorización por tipo, integración con otras aplicaciones ni renovación automática. El alta y corrección de registros son externas al login. No se confía en nombres del proveedor para la bienvenida.
+No hay autorregistro, edición de usuarios o correos ni renovación automática. La integración con aplicaciones y la autorización administrativa se definen en el [contrato de módulos](module-access.spec.md). El alta y corrección de registros son externas al login. No se confía en nombres del proveedor para la bienvenida.
 
 - Google requiere correo registrado y verificado del dominio exacto `itsmva.edu.mx` y organización Workspace autorizada. En el primer acceso se vincula el `sub` validado; después deben coincidir correo y `sub`.
 - Microsoft requiere correo registrado del dominio exacto `monclova.tecnm.mx` y tenant autorizado. En el primer acceso se vinculan `tid` y `oid` validados; después deben coincidir correo y ambos identificadores. El tipo de cuenta y el claim `acct` no determinan el acceso.
@@ -44,7 +44,7 @@ Respuesta de sesión `200`, JSON:
 
 El backend emite un JWT propio con `sub` igual al UUID interno, `iss`, `aud`, `iat`, `exp` y `user_type` con el código estable. Dura una hora desde su emisión; firma, emisor, audiencia y vencimiento se validan en cada consulta protegida. No contiene correos, nombres, identificadores externos ni secretos. No se introduce en URLs ni es accesible a JavaScript: se transporta en cookie `HttpOnly` y `Secure`. La cookie usa `SameSite=Lax`. El cierre de sesión exige un encabezado `Origin` que coincida con el origen HTTPS del frontend; un origen ausente o diferente responde `403`. Para acceso entre orígenes se permiten credenciales únicamente desde los orígenes CORS configurados.
 
-Si el tipo cambia durante la sesión, el JWT conserva el anterior hasta vencer; la consulta de sesión obtiene el tipo vigente de la base. La verificación de permisos actuales se definirá en una etapa posterior. La eliminación de un usuario se detecta en la siguiente consulta; no hay heartbeat. Al vencer, se exige iniciar sesión de nuevo, aunque el proveedor puede reconocer una sesión propia existente.
+Si el tipo cambia durante la sesión, el JWT conserva el anterior hasta vencer; la consulta de sesión obtiene el tipo vigente de la base. La administración de módulos verifica el tipo vigente y las asignaciones en la base de datos. La eliminación de un usuario se detecta en la siguiente consulta; no hay heartbeat. Al vencer, se exige iniciar sesión de nuevo, aunque el proveedor puede reconocer una sesión propia existente.
 
 ## Criterios de aceptación
 
@@ -53,7 +53,7 @@ Si el tipo cambia durante la sesión, el JWT conserva el anterior hasta vencer; 
 3. El JWT contiene solo los claims previstos y vence a la hora; uno alterado, vencido o con emisor o audiencia incorrectos se rechaza.
 4. La consulta devuelve `401` para una cookie inválida o un usuario eliminado. El frontend consulta al cargar y al regresar a la pestaña, sin polling, y muestra el vencimiento al cumplirse la hora.
 5. Cerrar sesión borra la cookie y regresa al inicio; no afecta al proveedor. Una copia previa del JWT puede seguir siendo válida hasta su vencimiento.
-6. Un cambio de tipo aparece en la siguiente consulta, aunque el JWT conserve el valor anterior. Ningún tipo otorga funciones adicionales en esta etapa.
+6. Un cambio de tipo aparece en la siguiente consulta, aunque el JWT conserve el valor anterior. La administración de módulos exige `superadmin` vigente; los permisos no se obtienen del tipo anterior incluido en el JWT.
 7. Se verifican los flujos con proveedores simulados y base aislada; las pruebas reales dependen de cuentas, configuración y credenciales institucionales.
 
 Detalles de implementación y aceptación: [backend](../backend/Modules/Session/specs/session.spec.md) y [frontend](../frontend/src/modules/session/specs/session.spec.md). Referencia de decisiones: [plan](../plans/session-control-plan.md).

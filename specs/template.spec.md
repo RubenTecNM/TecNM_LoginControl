@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Proyecto derivado del template institucional con .NET 10, EF Core, PostgreSQL, Vue 3, TypeScript y componentes TecNM. Su funcionalidad de inicio de sesión se define en [session-control.spec.md](session-control.spec.md); el health check público permanece definido en [health.spec.md](health.spec.md).
+Proyecto derivado del template institucional con .NET 10, EF Core, PostgreSQL, Vue 3, TypeScript y componentes TecNM. Su funcionalidad de inicio de sesión se define en [session-control.spec.md](session-control.spec.md); la integración con aplicaciones externas y administración de accesos se define en [module-access.spec.md](module-access.spec.md); el health check público permanece definido en [health.spec.md](health.spec.md).
 
 La aplicación conserva el layout, tema y componentes compartidos del template. `database.sql` inicializa el esquema del proyecto mediante carga explícita en PostgreSQL del anfitrión; no migra bases existentes. El setup conserva HTTPS, comprobación de puertos, contenedores separados y persistencia.
 

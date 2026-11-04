@@ -1,3 +1,4 @@
+using TecNM.Api.Modules.ModuleAccess;
 using Microsoft.EntityFrameworkCore;
 
 namespace TecNM.Api.Data;
@@ -7,6 +8,7 @@ public sealed class TecNMDbContext(DbContextOptions<TecNMDbContext> options) : D
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.ConfigureModules();
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TecNMDbContext).Assembly);
     }
 }

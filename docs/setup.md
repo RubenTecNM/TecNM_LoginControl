@@ -30,7 +30,7 @@ Para backend o ambos, se comprueba con el archivo existente; durante la creació
 
 ## Contrato de `database.sql`
 
-El archivo de la raíz crea las tablas de usuarios y tipos de usuario y los cuatro tipos iniciales. No crea usuarios. El panel lo aplica únicamente cuando se solicita la carga o recreación; no aplica migraciones EF ni `EnsureCreated`. Editar el archivo no actualiza una base existente: requiere una migración explícita revisada.
+El archivo de la raíz crea usuarios, tipos de usuario, módulos, asignaciones y tokens temporales, junto con los cuatro tipos iniciales. No crea usuarios. El panel lo aplica únicamente cuando se solicita la carga o recreación; no aplica migraciones EF ni `EnsureCreated`. Editar el archivo no actualiza una base existente: requiere una migración explícita revisada.
 
 El certificado local es autofirmado y el navegador puede pedir aceptarlo. Producción requiere su propia configuración de certificados, red y credenciales.
 
@@ -57,3 +57,9 @@ API_URL=https://localhost:7001 bash scripts/smoke-template.sh
 ```
 
 La prueba HTTP requiere curl y Python 3. Verifica la respuesta del health check y un `404` para una ruta de API no registrada.
+
+## Módulos externos
+
+Revisar el script aditivo de módulos en `scripts/migrations/` para una base existente. Probarlo primero con una copia aislada; no elimina usuarios ni se aplica automáticamente. Las bases nuevas reciben el esquema mediante `database.sql`.
+
+Un usuario registrado de tipo `superadmin` administra módulos y asignaciones desde la bienvenida. Al crear o reemplazar una clave, se muestra una sola vez. Entregar al equipo del servicio su UUID, API key y URL pública de `/api/modules/exchange`; las claves no se consultan después ni se guardan en Git. Guía transferible: [module-integration.md](../module-integration.md).

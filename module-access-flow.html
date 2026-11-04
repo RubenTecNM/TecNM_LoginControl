@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>LoginControl · Flujo de acceso a módulos</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #f3f5f7; color: #172c3b; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.55; }
+main { max-width: 1740px; margin: auto; padding: 40px 32px; }
+.eyebrow { margin: 0 0 8px; color: #476274; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+h1 { font-size: clamp(26px, 3vw, 38px); line-height: 1.2; margin: 0 0 16px; letter-spacing: -.025em; }
+.intro { max-width: 850px; margin: 0 0 20px; color: #405765; }
+.meta { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 0 0 22px; font-size: 13px; color: #405765; }
+.legend { display: inline-flex; align-items: center; gap: 8px; }
+.line { width: 32px; height: 0; border-top: 2px solid #174b70; }
+.line.dashed { border-top-style: dashed; border-color: #426c66; }
+.canvas { background: white; border: 1px solid #d5dfe6; border-radius: 12px; overflow-x: auto; }
+svg { display: block; width: 100%; min-width: 1300px; height: auto; }
+.participant { fill: #edf3f8; stroke: #9cb5c7; stroke-width: 1.2; }
+.participant.external { fill: #eaf3ef; stroke: #94b9a9; }
+.participant-title { font-size: 16px; font-weight: 700; fill: #172c3b; }
+.lifeline { stroke: #c4d1db; stroke-width: 1.2; stroke-dasharray: 5 7; }
+.phase-band { fill: #f0f4f7; stroke: #dce5eb; }
+.phase { font-size: 15px; font-weight: 700; fill: #304f65; }
+.label { font-size: 14px; font-weight: 600; fill: #173a52; paint-order: stroke; stroke: white; stroke-width: 5px; stroke-linejoin: round; }
+.detail { font-size: 12px; fill: #4b626f; paint-order: stroke; stroke: white; stroke-width: 4px; stroke-linejoin: round; }
+.participant + text, .participant ~ .detail { stroke: none; }
+.request { fill: none; stroke: #174b70; stroke-width: 1.8; }
+.reply { fill: none; stroke: #426c66; stroke-width: 1.6; stroke-dasharray: 6 5; }
+.notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin: 24px 0; }
+.note { border-top: 3px solid #99aebb; padding-top: 12px; }
+.note h2 { font-size: 16px; margin: 0 0 8px; }
+.note p { margin: 0; font-size: 14px; color: #405765; }
+code { overflow-wrap: anywhere; font-size: .92em; }
+details { background: white; border: 1px solid #d5dfe6; border-radius: 8px; padding: 16px 20px; }
+summary { cursor: pointer; font-weight: 600; }
+li { margin: 8px 0; }
+footer { font-size: 13px; color: #506674; margin-top: 22px; }
+@media (max-width: 760px) { main { padding: 24px 16px; } .notes { grid-template-columns: 1fr; } }
+@media print { body { background: white; } main { padding: 0; } .canvas { border: 0; overflow: visible; } svg { min-width: 0; } .notes { break-inside: avoid; } details { display: none; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="eyebrow">LoginControl / Diseño de integración</p>
+<h1>Un login. Acceso a otras aplicaciones.</h1>
+<p class="intro">Diagrama UML de secuencia del flujo propuesto. El único inicio de sesión ocurre en LoginControl. Servicio Social recibe un código temporal, consulta al backend central y crea su sesión con la identidad validada.</p>
+<div class="meta"><span>Flujo con correlación automática aprobada; todas las peticiones usan HTTPS.</span><span class="legend"><span class="line" aria-hidden="true"></span>Petición o acción</span><span class="legend"><span class="line dashed" aria-hidden="true"></span>Respuesta</span></div>
+</header>
+<section class="canvas" aria-label="Diagrama de secuencia del acceso a módulos" tabindex="0">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-25 0 1680 2657" role="img" aria-labelledby="diagram-title diagram-description">
+<title id="diagram-title">Diagrama UML de secuencia: acceso de LoginControl a Servicio Social</title>
+<desc id="diagram-description">El usuario inicia sesión en LoginControl y selecciona un módulo. El backend verifica permisos, genera un código temporal y guarda su hash. El navegador lleva el código al módulo. Su backend lo canjea usando una clave de integración. LoginControl consume el código y devuelve la identidad. El módulo crea una sesión propia sin pedir otro login. Las flechas continuas indican peticiones; las discontinuas, respuestas.</desc>
+<defs>
+<marker id="request" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#174b70"/></marker>
+<marker id="reply" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="#426c66" stroke-width="1.5"/></marker>
+</defs>
+<g><rect class="participant " x="-16" y="32" width="232" height="76" rx="8"/><text class="participant-title" x="100" y="63" text-anchor="middle">Usuario</text><text class="detail" x="100" y="86" text-anchor="middle">Persona registrada</text><path class="lifeline" d="M 100 108 V 2642"/></g>
+<g><rect class="participant " x="274" y="32" width="232" height="76" rx="8"/><text class="participant-title" x="390" y="63" text-anchor="middle">Navegador / frontend</text><text class="detail" x="390" y="86" text-anchor="middle">LoginControl; después, módulo</text><path class="lifeline" d="M 390 108 V 2642"/></g>
+<g><rect class="participant " x="674" y="32" width="232" height="76" rx="8"/><text class="participant-title" x="790" y="63" text-anchor="middle">Backend LoginControl</text><text class="detail" x="790" y="86" text-anchor="middle">Sesión, permisos e identidad</text><path class="lifeline" d="M 790 108 V 2642"/></g>
+<g><rect class="participant " x="1074" y="32" width="232" height="76" rx="8"/><text class="participant-title" x="1190" y="63" text-anchor="middle">Base de datos central</text><text class="detail" x="1190" y="86" text-anchor="middle">Usuarios, módulos y códigos</text><path class="lifeline" d="M 1190 108 V 2642"/></g>
+<g><rect class="participant external" x="1394" y="32" width="232" height="76" rx="8"/><text class="participant-title" x="1510" y="63" text-anchor="middle">Backend del módulo</text><text class="detail" x="1510" y="86" text-anchor="middle">Servicio Social</text><path class="lifeline" d="M 1510 108 V 2642"/></g>
+<rect class="phase-band" x="22" y="150" width="1596" height="36" rx="5"/><text class="phase" x="40" y="174">01 · Sesión central y permisos</text>
+<g class="message"><text class="label" x="245.0" y="208" text-anchor="middle">1. Entra a LoginControl e inicia sesión</text><text class="detail" x="245.0" y="227" text-anchor="middle">Único formulario de login: Google o Microsoft</text><path class="request" d="M 100 240 H 390" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="590.0" y="294" text-anchor="middle">2. GET /api/modules</text><text class="detail" x="590.0" y="313" text-anchor="middle">Cookie de sesión central</text><path class="request" d="M 390 326 H 790" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="990.0" y="380" text-anchor="middle">3. Consulta módulos activos asignados</text><text class="detail" x="990.0" y="399" text-anchor="middle">Usuarios, módulos y asignaciones</text><path class="request" d="M 790 412 H 1190" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="990.0" y="466" text-anchor="middle">4. Devuelve accesos vigentes</text><text class="detail" x="990.0" y="485" text-anchor="middle">Respuesta</text><path class="reply" d="M 1190 498 H 790" marker-end="url(#reply)"/></g>
+<g class="message"><text class="label" x="590.0" y="552" text-anchor="middle">5. Muestra módulos en dashboard</text><text class="detail" x="590.0" y="571" text-anchor="middle">Respuesta</text><path class="reply" d="M 790 584 H 390" marker-end="url(#reply)"/></g>
+<g class="message"><text class="label" x="245.0" y="638" text-anchor="middle">6. Selecciona Servicio Social</text><text class="detail" x="245.0" y="657" text-anchor="middle">Usuario autenticado</text><path class="request" d="M 100 670 H 390" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="590.0" y="724" text-anchor="middle">7. POST /api/modules/{id}/launch</text><text class="detail" x="590.0" y="743" text-anchor="middle">Cookie central y origen exacto</text><path class="request" d="M 390 756 H 790" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="990.0" y="810" text-anchor="middle">8. Comprueba acceso y guarda ticket temporal</text><text class="detail" x="990.0" y="829" text-anchor="middle">browser_confirmed=false; hash y vencimiento de 60 segundos</text><path class="request" d="M 790 842 H 1190" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="990.0" y="896" text-anchor="middle">9. Confirma intento registrado</text><text class="detail" x="990.0" y="915" text-anchor="middle">Respuesta</text><path class="reply" d="M 1190 928 H 790" marker-end="url(#reply)"/></g>
+<g class="message"><text class="label" x="590.0" y="982" text-anchor="middle">10. Devuelve URL registrada con ticket</text><text class="detail" x="590.0" y="1001" text-anchor="middle">Respuesta</text><path class="reply" d="M 790 1014 H 390" marker-end="url(#reply)"/></g>
+<rect class="phase-band" x="22" y="1092" width="1596" height="36" rx="5"/><text class="phase" x="40" y="1116">02 · Correlación automática del navegador</text>
+<g class="message"><text class="label" x="950.0" y="1150" text-anchor="middle">11. GET /acceso/?ticket=TICKET</text><text class="detail" x="950.0" y="1169" text-anchor="middle">Primera llegada al módulo</text><path class="request" d="M 390 1182 H 1510" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="950.0" y="1236" text-anchor="middle">12. Establece cookie de correlación y redirige</text><text class="detail" x="950.0" y="1255" text-anchor="middle">State aleatorio propio; redirección automática</text><path class="request" d="M 1510 1268 H 390" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="590.0" y="1322" text-anchor="middle">13. GET /api/modules/authorize?ticket=...&amp;state=...</text><text class="detail" x="590.0" y="1341" text-anchor="middle">El navegador lleva su cookie de LoginControl</text><path class="request" d="M 390 1354 H 790" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="990.0" y="1408" text-anchor="middle">14. Valida sesión del mismo usuario y permisos</text><text class="detail" x="990.0" y="1427" text-anchor="middle">Consume ticket; genera código confirmado en transacción</text><path class="request" d="M 790 1440 H 1190" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="990.0" y="1494" text-anchor="middle">15. Confirma código canjeable de un uso</text><text class="detail" x="990.0" y="1513" text-anchor="middle">Respuesta</text><path class="reply" d="M 1190 1526 H 790" marker-end="url(#reply)"/></g>
+<g class="message"><text class="label" x="590.0" y="1580" text-anchor="middle">16. 302 a URL registrada con code y state</text><text class="detail" x="590.0" y="1599" text-anchor="middle">Referrer-Policy: no-referrer</text><path class="request" d="M 790 1612 H 390" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="950.0" y="1666" text-anchor="middle">17. GET /acceso/?code=...&amp;state=...</text><text class="detail" x="950.0" y="1685" text-anchor="middle">Cookie de correlación del propio módulo</text><path class="request" d="M 390 1698 H 1510" marker-end="url(#request)"/></g>
+<g class="message"><path class="request" d="M 1510 1776 H 1450 V 1800 H 1510" marker-end="url(#request)"/><text class="label" x="1430" y="1768" text-anchor="end">18. Compara state con su cookie y la elimina</text><text class="detail" x="1430" y="1788" text-anchor="end">Sin coincidencia: rechaza sin canjear</text></g>
+<rect class="phase-band" x="22" y="1862" width="1596" height="36" rx="5"/><text class="phase" x="40" y="1886">03 · Canje entre backends y sesión externa</text>
+<g class="message"><text class="label" x="1150.0" y="1920" text-anchor="middle">19. POST /api/modules/exchange</text><text class="detail" x="1150.0" y="1939" text-anchor="middle">Authorization: Bearer API_KEY · JSON: { moduleId, code }</text><path class="request" d="M 1510 1952 H 790" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="990.0" y="2006" text-anchor="middle">20. Valida clave, código confirmado y permiso actual</text><text class="detail" x="990.0" y="2025" text-anchor="middle">Código correcto, vigente y sin uso; consume atómicamente</text><path class="request" d="M 790 2038 H 1190" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="990.0" y="2092" text-anchor="middle">21. Devuelve identidad y confirma consumo</text><text class="detail" x="990.0" y="2111" text-anchor="middle">Respuesta</text><path class="reply" d="M 1190 2124 H 790" marker-end="url(#reply)"/></g>
+<g class="message"><text class="label" x="1150.0" y="2178" text-anchor="middle">22. 200 con user: ID, nombres, apellidos y correos</text><text class="detail" x="1150.0" y="2197" text-anchor="middle">Respuesta</text><path class="reply" d="M 790 2210 H 1510" marker-end="url(#reply)"/></g>
+<g class="message"><path class="request" d="M 1510 2288 H 1450 V 2312 H 1510" marker-end="url(#request)"/><text class="label" x="1430" y="2280" text-anchor="end">23. Crea su sesión propia</text><text class="detail" x="1430" y="2300" text-anchor="end">No solicita otro login</text></g>
+<g class="message"><text class="label" x="950.0" y="2350" text-anchor="middle">24. Cookie de sesión y redirección a URL limpia</text><text class="detail" x="950.0" y="2369" text-anchor="middle">Respuesta</text><path class="reply" d="M 1510 2382 H 390" marker-end="url(#reply)"/></g>
+<g class="message"><text class="label" x="950.0" y="2436" text-anchor="middle">25. Abre aplicación con cookie propia</text><text class="detail" x="950.0" y="2455" text-anchor="middle">Sin parámetros temporales</text><path class="request" d="M 390 2468 H 1510" marker-end="url(#request)"/></g>
+<g class="message"><text class="label" x="950.0" y="2522" text-anchor="middle">26. Muestra Servicio Social</text><text class="detail" x="950.0" y="2541" text-anchor="middle">Respuesta</text><path class="reply" d="M 1510 2554 H 390" marker-end="url(#reply)"/></g></svg>
+</section>
+<div class="notes">
+<section class="note"><h2>Si no tiene permiso</h2><p>LoginControl rechaza el lanzamiento. No genera código ni navega al módulo. Una sesión inválida devuelve <code>401</code>; acceso no habilitado, <code>403</code>.</p></section>
+<section class="note"><h2>Si el canje es inválido</h2><p>Clave inválida, código vencido, usado o de otro módulo: se rechaza sin devolver identidad. También se revisa que la asignación siga activa. El módulo no crea sesión.</p></section>
+<section class="note"><h2>Claves y sesiones separadas</h2><p>La API key es exclusiva del módulo y nunca viaja al navegador. No se comparte la clave de firma JWT. Deshabilitar una asignación bloquea nuevos ingresos; no cierra sesiones externas existentes.</p></section>
+</div>
+<details><summary>Leer el flujo en texto</summary><ol><li>Entra a LoginControl e inicia sesión. Único formulario de login: Google o Microsoft.</li><li>GET /api/modules. Cookie de sesión central.</li><li>Consulta módulos activos asignados. Usuarios, módulos y asignaciones.</li><li>Devuelve accesos vigentes. Respuesta.</li><li>Muestra módulos en dashboard. Respuesta.</li><li>Selecciona Servicio Social. Usuario autenticado.</li><li>POST /api/modules/{id}/launch. Cookie central y origen exacto.</li><li>Comprueba acceso y guarda ticket temporal. browser_confirmed=false; hash y vencimiento de 60 segundos.</li><li>Confirma intento registrado. Respuesta.</li><li>Devuelve URL registrada con ticket. Respuesta.</li><li>GET /acceso/?ticket=TICKET. Primera llegada al módulo.</li><li>Establece cookie de correlación y redirige. State aleatorio propio; redirección automática.</li><li>GET /api/modules/authorize?ticket=...&amp;state=.... El navegador lleva su cookie de LoginControl.</li><li>Valida sesión del mismo usuario y permisos. Consume ticket; genera código confirmado en transacción.</li><li>Confirma código canjeable de un uso. Respuesta.</li><li>302 a URL registrada con code y state. Referrer-Policy: no-referrer.</li><li>GET /acceso/?code=...&amp;state=.... Cookie de correlación del propio módulo.</li><li>Compara state con su cookie y la elimina. Sin coincidencia: rechaza sin canjear.</li><li>POST /api/modules/exchange. Authorization: Bearer API_KEY · JSON: { moduleId, code }.</li><li>Valida clave, código confirmado y permiso actual. Código correcto, vigente y sin uso; consume atómicamente.</li><li>Devuelve identidad y confirma consumo. Respuesta.</li><li>200 con user: ID, nombres, apellidos y correos. Respuesta.</li><li>Crea su sesión propia. No solicita otro login.</li><li>Cookie de sesión y redirección a URL limpia. Respuesta.</li><li>Abre aplicación con cookie propia. Sin parámetros temporales.</li><li>Muestra Servicio Social. Respuesta.</li></ol></details>
+<footer>Lectura de arriba hacia abajo. En pantallas pequeñas, desplaza el diagrama horizontalmente. Todas las comunicaciones HTTP del flujo usan HTTPS. Este documento describe el intercambio; el receptor debe comparar state con su cookie antes de canjear el código.</footer>
+</main>
+</body>
+</html>
+

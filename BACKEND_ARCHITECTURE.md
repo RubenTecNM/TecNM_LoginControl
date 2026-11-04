@@ -1,7 +1,7 @@
 # Proyecto Web Backend
 
 ## Descripción
-**Proyecto Web Backend** es una API RESTful desarrollada sobre el ecosistema .NET. Es el backend del proyecto derivado LoginControl, organizado en módulos. Incluye health check, sesión institucional y persistencia de usuarios y tipos.
+**Proyecto Web Backend** es una API RESTful desarrollada sobre el ecosistema .NET. Es el backend del proyecto derivado LoginControl, organizado en módulos. Incluye health check, sesión institucional, módulos externos y administración de asignaciones. `Modules/ModuleAccess/` contiene catálogo, emisión, confirmación del navegador y canje; las entidades de esta funcionalidad permanecen en su slice.
 
 ---
 

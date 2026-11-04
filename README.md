@@ -15,6 +15,12 @@ La opción «Limpiar contenedores y base de datos» retira los dos contenedores 
 
 Requiere Docker Compose, Python 3, OpenSSL, curl y el cliente `psql`. Al crear backend se elige o crea su `.env`; antes de arrancarlo se comprueba la conexión PostgreSQL; si falla, la operación se detiene. Los puertos publicados escuchan en las interfaces del servidor, sujetos a la red y el firewall. Configurar PostgreSQL para aceptar conexiones desde la red de Docker y autorizar al usuario de aplicación. El panel permite cargar `database.sql` con credenciales introducidas en cada ejecución, consultar estados y recrear contenedores o la base. Recrear la base elimina sus datos y requiere dos confirmaciones. Las opciones “Crear servicios”, “Iniciar servicios” y “Recrear servicios” permiten elegir frontend, backend o ambos. Al crear o recrear un contenedor se solicitan su nombre y el puerto publicado; se guarda junto a los puertos en el `.env` raíz. Iniciar y consultar estados utilizan los nombres guardados, sin pedirlos nuevamente. Recrear elimina los contenedores seleccionados y repite el flujo completo de creación. La navegación es con una tecla, sin Enter; “Ambos” inicia primero el backend. Consulte [la guía de setup](docs/setup.md#panel-con-postgresql-en-el-anfitrión).
 
+## Módulos externos
+
+LoginControl permite registrar aplicaciones externas y asignar sus accesos. Solo `superadmin` administra el catálogo y los permisos, por usuario, módulo o lote de usuarios existentes. Los módulos canjean códigos de un uso desde su backend y crean su sesión propia. Consultar [contrato](specs/module-access.spec.md), [guía de integración](module-integration.md) y [plan](plans/module-access-plan.md). El receptor debe preparar y comprobar su cookie de correlación según la guía; LoginControl verifica la sesión del navegador antes de emitir el código canjeable.
+
+Para bases existentes, revisar la migración aditiva de módulos en `scripts/migrations/` y aplicarla explícitamente antes de usar estas funciones; reconstruir contenedores no actualiza el esquema.
+
 ## Base de datos y sesión
 
 El panel consulta si la base PostgreSQL indicada existe: ofrece crearla si falta o reemplazarla tras advertir y confirmar la pérdida de datos si ya existe. Después carga [`database.sql`](database.sql). El esquema incluye usuarios y cuatro tipos iniciales; no registra usuarios. La configuración de proveedores y credenciales se describe en [setup](docs/setup.md#inicio-de-sesión-institucional). Sin ella, el inicio de sesión no está disponible y responde 503; el health permanece disponible.

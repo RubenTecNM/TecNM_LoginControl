@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
+import { ModulesPanel } from '../../modules'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { UiAlert, UiBasePage, UiButton, UiCard, UiLayout } from '../../../shared/components'
@@ -8,6 +9,7 @@ import { getSession, login, logout, type Session } from '../api/session'
 const route = useRoute()
 const router = useRouter()
 const session = ref<Session | null>(null)
+const sessionVersion = ref(0)
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
@@ -44,6 +46,7 @@ async function refreshSession() {
       return
     }
     session.value = result
+    sessionVersion.value++
     expired.value = false
     clearTimeout(expirationTimer)
     expirationTimer = setTimeout(() => {
@@ -125,7 +128,7 @@ onUnmounted(() => {
       <UiCard v-if="loading" class="session-card">
         <p role="status">Consultando tu sesión…</p>
       </UiCard>
-      <UiCard v-else-if="session" class="session-card">
+      <UiCard v-else-if="session" class="session-card session-card--dashboard">
         <UiLayout kind="stack">
           <div>
             <p class="session-eyebrow">Bienvenida</p>
@@ -133,6 +136,7 @@ onUnmounted(() => {
             <p class="session-description">Tipo de usuario: <strong>{{ session.user.userType.name }}</strong></p>
           </div>
           <UiAlert v-if="error" tone="danger">{{ error }}</UiAlert>
+          <ModulesPanel :key="sessionVersion" :admin="session.user.userType.code === 'superadmin'" @invalid-session="clearSession(true)" />
           <div><UiButton variant="secondary" :loading="submitting" @click="closeSession">Cerrar sesión</UiButton></div>
         </UiLayout>
       </UiCard>
@@ -174,6 +178,7 @@ onUnmounted(() => {
 .session-intro__signature { font-size: 11px; font-weight: 600; text-transform: uppercase; }
 .session-content { display: flex; align-items: center; justify-content: center; padding: 64px 32px; }
 .session-card { width: min(100%, 504px); padding: 48px; }
+.session-card--dashboard { width: min(100%, 900px); }
 .session-card h2 { margin-top: 24px; font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -.025em; overflow-wrap: anywhere; }
 .session-description { margin-top: 16px; font-size: 15px; }
 .session-actions { display: grid; gap: 16px; margin-top: 64px; }
