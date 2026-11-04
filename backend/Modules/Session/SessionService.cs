@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using TecNM.Api.Data;
 
 namespace TecNM.Api.Modules.Session;
@@ -48,17 +49,32 @@ public sealed class SessionService(TecNMDbContext db, IConfiguration configurati
             var subject = principal.FindFirst("sub")?.Value;
             if (parts[1] != "itsmva.edu.mx" || principal.FindFirst("hd")?.Value != "itsmva.edu.mx"
                 || !string.Equals(principal.FindFirst("email_verified")?.Value, "true", StringComparison.OrdinalIgnoreCase)
-                || string.IsNullOrWhiteSpace(subject)) return null;
+                || string.IsNullOrWhiteSpace(subject) || subject.Length > 255) return null;
+            try
+            {
+                await db.Set<User>().Where(user => user.GoogleEmail != null && user.GoogleEmail.ToLower() == normalizedEmail
+                    && user.GoogleSubject == null)
+                    .ExecuteUpdateAsync(update => update.SetProperty(user => user.GoogleSubject, subject), cancellationToken);
+            }
+            catch (PostgresException exception) when (exception.SqlState == PostgresErrorCodes.UniqueViolation) { return null; }
             return await users.SingleOrDefaultAsync(user => user.GoogleSubject == subject
                 && user.GoogleEmail != null && user.GoogleEmail.ToLower() == normalizedEmail, cancellationToken);
         }
 
         if (provider == "microsoft")
         {
-            if (parts[1] != "monclova.tecnm.mx" || principal.FindFirst("acct")?.Value != "0"
+            if (parts[1] != "monclova.tecnm.mx"
                 || !Guid.TryParse(principal.FindFirst("tid")?.Value, out var tenant)
                 || !Guid.TryParse(configuration["Session:Microsoft:TenantId"], out var allowedTenant)
                 || tenant != allowedTenant || !Guid.TryParse(principal.FindFirst("oid")?.Value, out var objectId)) return null;
+            try
+            {
+                await db.Set<User>().Where(user => user.MicrosoftEmail != null && user.MicrosoftEmail.ToLower() == normalizedEmail
+                    && user.MicrosoftTenantId == null && user.MicrosoftObjectId == null)
+                    .ExecuteUpdateAsync(update => update.SetProperty(user => user.MicrosoftTenantId, tenant)
+                        .SetProperty(user => user.MicrosoftObjectId, objectId), cancellationToken);
+            }
+            catch (PostgresException exception) when (exception.SqlState == PostgresErrorCodes.UniqueViolation) { return null; }
             return await users.SingleOrDefaultAsync(user => user.MicrosoftTenantId == tenant && user.MicrosoftObjectId == objectId
                 && user.MicrosoftEmail != null && user.MicrosoftEmail.ToLower() == normalizedEmail, cancellationToken);
         }

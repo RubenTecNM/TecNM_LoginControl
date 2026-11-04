@@ -30,10 +30,11 @@ CREATE TABLE users (
     CONSTRAINT users_first_names_not_blank CHECK (first_names ~ '[^[:space:]]'),
     CONSTRAINT users_paternal_last_name_not_blank CHECK (paternal_last_name ~ '[^[:space:]]'),
     CONSTRAINT users_provider_required CHECK (google_email IS NOT NULL OR microsoft_email IS NOT NULL),
-    CONSTRAINT users_google_account_complete CHECK ((google_email IS NULL) = (google_subject IS NULL)),
+    CONSTRAINT users_google_account_complete CHECK (google_subject IS NULL OR google_email IS NOT NULL),
     CONSTRAINT users_microsoft_account_complete CHECK (
         (microsoft_email IS NULL AND microsoft_tenant_id IS NULL AND microsoft_object_id IS NULL)
-        OR (microsoft_email IS NOT NULL AND microsoft_tenant_id IS NOT NULL AND microsoft_object_id IS NOT NULL)
+        OR (microsoft_email IS NOT NULL AND ((microsoft_tenant_id IS NULL AND microsoft_object_id IS NULL)
+            OR (microsoft_tenant_id IS NOT NULL AND microsoft_object_id IS NOT NULL)))
     ),
     CONSTRAINT users_google_email_domain CHECK (
         google_email IS NULL OR google_email ~* '^[^[:space:]@]+@itsmva[.]edu[.]mx$'

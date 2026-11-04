@@ -35,3 +35,13 @@ Las decisiones de identidad, tipos y sesión están en el plan y las specs. El S
 ## Estado y siguientes pasos
 
 Implementación disponible para revisión. Para las pruebas reales se requieren credenciales, configuración de proveedores, organizaciones, URL y usuarios de prueba institucionales. Las bases existentes requieren una actualización explícita revisada; no hay migración automática.
+
+## Vinculación inicial por correo
+
+El alta permite registrar correos institucionales sin identificadores. Tras una autenticación válida, el backend vincula atómicamente los claims del proveedor; una identidad vinculada no se reemplaza y la unicidad impide asociarla a otra persona. La migración explícita `scripts/migrations/20261103_allow_unlinked_identities.sql` adapta bases con el esquema anterior.
+
+Se verificaron la migración en PostgreSQL aislado y los casos de primer acceso, claims inválidos, vinculación concurrente e identidades en conflicto con `scripts/test-session.sh`. La conexión real con proveedores requiere credenciales y configuración institucional.
+
+## Acceso Microsoft por correo registrado
+
+El acceso Microsoft ya no depende del claim `acct`: acepta miembros e invitados cuyo correo registrado, tenant e identificadores cumplan el contrato. Se mantienen la validación del proveedor y la vinculación de identidad. `scripts/test-session.sh` cubre correo no registrado, `acct` ausente o de invitado, tenant inválido y conflictos de identidad.

@@ -2,9 +2,9 @@ import type { BrandOptions, NavigationItem } from '../../shared/components/navig
 
 // Cambiar estas opciones por aplicación. Header y sidebar son independientes.
 export const mainLayoutConfig = {
-  showHeader: false,
-  showSidebar: true,
-  header: { title: 'TecNM', subtitle: 'Campus Monclova', showTitle: true, showLogo: false } satisfies BrandOptions,
+  showHeader: true,
+  showSidebar: false,
+  header: { title: 'TecNM', subtitle: 'Campus Monclova', showTitle: true, showLogo: true } satisfies BrandOptions,
   sidebar: { title: 'TecNM', subtitle: 'Campus Monclova', showTitle: true, showLogo: false } satisfies BrandOptions,
 }
 

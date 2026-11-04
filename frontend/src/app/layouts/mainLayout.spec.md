@@ -24,8 +24,8 @@ Editar `mainLayoutConfig` en `mainLayout.config.ts`:
 | Diseño | showHeader | showSidebar |
 | --- | --- | --- |
 | Ambos | true | true |
-| Solo header | true | false |
-| Solo sidebar, configuración actual | false | true |
+| Solo header, configuración actual | true | false |
+| Solo sidebar | false | true |
 | Ninguno | false | false |
 
 Sin sidebar, contenido ocupa ancho disponible. No queda columna vacía.

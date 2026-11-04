@@ -41,6 +41,7 @@ public static class SessionAuthentication
             options.Scope.Clear();
             options.Scope.Add("openid");
             options.Scope.Add("email");
+            if (provider == "microsoft") options.Scope.Add("profile");
             options.TokenValidationParameters = new TokenValidationParameters { NameClaimType = "sub" };
             options.Events.OnTicketReceived = async context =>
             {

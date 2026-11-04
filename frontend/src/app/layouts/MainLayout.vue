@@ -8,7 +8,7 @@ const { dark } = useTheme()
 </script>
 
 <template>
-  <UiShell :show-header="mainLayoutConfig.showHeader" :show-sidebar="mainLayoutConfig.showSidebar">
+  <UiShell class="main-shell" :show-header="mainLayoutConfig.showHeader" :show-sidebar="mainLayoutConfig.showSidebar">
     <template #header>
       <UiHeader v-bind="mainLayoutConfig.header" :items="headerNavigation">
         <UiToggle v-model="dark" type="switch" label="Modo oscuro" class="theme" />
@@ -26,3 +26,9 @@ const { dark } = useTheme()
     </template>
   </UiShell>
 </template>
+
+<style scoped>
+.main-shell :deep(.topbar) { border-bottom: 4px solid var(--color-accent); }
+.main-shell :deep(.brand-logo) { background: transparent; }
+.main-shell :deep(.ui-main) { padding: 0; }
+</style>

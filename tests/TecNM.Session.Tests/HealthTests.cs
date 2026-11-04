@@ -1,10 +1,12 @@
 using System.Net;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using TecNM.Api.Data;
 using TecNM.Api.Modules.Session;
 using Xunit;
@@ -13,6 +15,23 @@ namespace TecNM.Session.Tests;
 
 public sealed class HealthTests
 {
+    [Fact]
+    public void MicrosoftRequestsProfileForObjectIdentifier()
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Session:Microsoft:ClientId"] = "client", ["Session:Microsoft:ClientSecret"] = "secret"
+        }).Build();
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSessionAuthentication(configuration);
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>().Get("Microsoft");
+        Assert.Contains("openid", options.Scope);
+        Assert.Contains("email", options.Scope);
+        Assert.Contains("profile", options.Scope);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

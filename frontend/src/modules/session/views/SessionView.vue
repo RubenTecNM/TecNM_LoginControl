@@ -111,30 +111,91 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <UiBasePage title="Inicio" description="Tecnológico Nacional de México · Campus Monclova">
-    <UiCard v-if="loading" title="Sesión">
-      <p role="status">Consultando tu sesión…</p>
-    </UiCard>
-    <UiCard v-else-if="session" title="Bienvenida">
-      <UiLayout kind="stack">
-        <p>Bienvenido, {{ fullName }}.</p>
-        <p>Tipo de usuario: <strong>{{ session.user.userType.name }}</strong></p>
-        <UiAlert v-if="error" tone="danger">{{ error }}</UiAlert>
-        <div><UiButton variant="secondary" :loading="submitting" @click="closeSession">Cerrar sesión</UiButton></div>
-      </UiLayout>
-    </UiCard>
-    <UiCard v-else title="Iniciar sesión" description="Ingresa con tu cuenta institucional.">
-      <UiLayout kind="stack">
-        <UiAlert v-if="expired" tone="info">Tu sesión venció. Inicia sesión nuevamente.</UiAlert>
-        <UiAlert v-if="error" tone="danger">{{ error }}</UiAlert>
-        <template v-if="sessionUnavailable">
-          <div><UiButton @click="refreshSession">Reintentar</UiButton></div>
-        </template>
-        <template v-else>
-          <div><UiButton :disabled="redirecting" @click="startLogin('google')">Continuar con Google</UiButton></div>
-          <div><UiButton variant="secondary" :disabled="redirecting" @click="startLogin('microsoft')">Continuar con Microsoft</UiButton></div>
-        </template>
-      </UiLayout>
-    </UiCard>
+  <UiBasePage fluid class="session-page">
+    <div class="session-intro">
+      <div class="session-intro__content">
+        <span class="session-intro__line" aria-hidden="true"></span>
+        <p class="session-eyebrow">Un solo acceso</p>
+        <h1>Tu comunidad,<br>en un solo lugar.</h1>
+        <p class="session-intro__description">Accede a los espacios y servicios de tu comunidad tecnológica.</p>
+      </div>
+      <p class="session-intro__signature">Tecnológico Nacional de México</p>
+    </div>
+    <div class="session-content">
+      <UiCard v-if="loading" class="session-card">
+        <p role="status">Consultando tu sesión…</p>
+      </UiCard>
+      <UiCard v-else-if="session" class="session-card">
+        <UiLayout kind="stack">
+          <div>
+            <p class="session-eyebrow">Bienvenida</p>
+            <h2>Bienvenido, {{ fullName }}.</h2>
+            <p class="session-description">Tipo de usuario: <strong>{{ session.user.userType.name }}</strong></p>
+          </div>
+          <UiAlert v-if="error" tone="danger">{{ error }}</UiAlert>
+          <div><UiButton variant="secondary" :loading="submitting" @click="closeSession">Cerrar sesión</UiButton></div>
+        </UiLayout>
+      </UiCard>
+      <UiCard v-else class="session-card">
+        <p class="session-eyebrow">Acceso institucional</p>
+        <h2>Inicia sesión</h2>
+        <p class="session-description">Selecciona el proveedor con el que deseas continuar.</p>
+        <div class="session-actions">
+          <UiAlert v-if="expired" tone="info">Tu sesión venció. Inicia sesión nuevamente.</UiAlert>
+          <UiAlert v-if="error" tone="danger">{{ error }}</UiAlert>
+          <template v-if="sessionUnavailable">
+            <UiButton @click="refreshSession">Reintentar</UiButton>
+          </template>
+          <template v-else>
+            <UiButton class="provider-button" variant="secondary" :disabled="redirecting" @click="startLogin('microsoft')">
+              <span class="microsoft-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              <span>Continuar con Microsoft</span><span class="provider-arrow" aria-hidden="true">→</span>
+            </UiButton>
+            <UiButton class="provider-button" variant="secondary" :disabled="redirecting" @click="startLogin('google')">
+              <span class="google-mark" aria-hidden="true">G</span>
+              <span>Continuar con Google</span><span class="provider-arrow" aria-hidden="true">→</span>
+            </UiButton>
+          </template>
+        </div>
+        <p class="session-hint">Elige una opción para acceder a tu cuenta.</p>
+      </UiCard>
+    </div>
   </UiBasePage>
 </template>
+
+<style scoped>
+.session-page { display: grid; grid-template-columns: 5fr 7fr; min-height: 100%; }
+.session-intro { display: flex; flex-direction: column; justify-content: space-between; gap: 48px; padding: clamp(64px, 12vw, 172px) clamp(32px, 5vw, 72px) 64px; background: var(--color-primary-tint); }
+.session-intro__line { display: block; width: 42px; height: 4px; margin-bottom: 26px; background: var(--color-accent); }
+.session-eyebrow { color: var(--color-primary); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+:global([data-theme="dark"] .session-eyebrow) { color: var(--color-info); }
+.session-intro h1 { margin-top: 24px; font-size: clamp(32px, 3vw, 42px); }
+.session-intro__description { max-width: 400px; margin-top: 24px; font-size: 17px; }
+.session-intro__signature { font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.session-content { display: flex; align-items: center; justify-content: center; padding: 64px 32px; }
+.session-card { width: min(100%, 504px); padding: 48px; }
+.session-card h2 { margin-top: 24px; font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.session-description { margin-top: 16px; font-size: 15px; }
+.session-actions { display: grid; gap: 16px; margin-top: 64px; }
+.provider-button { display: flex; align-items: center; gap: 22px; width: 100%; min-height: 60px; padding: 16px 24px; text-align: left; font-size: 15px; }
+.provider-arrow { margin-left: auto; color: var(--color-text-secondary); font-size: 20px; font-weight: 400; }
+.microsoft-mark { display: grid; grid-template-columns: repeat(2, 9px); gap: 1px; flex: none; }
+.microsoft-mark i { width: 9px; height: 9px; background: #f35325; }
+.microsoft-mark i:nth-child(2) { background: #81bc06; }
+.microsoft-mark i:nth-child(3) { background: #05a6f0; }
+.microsoft-mark i:nth-child(4) { background: #ffba08; }
+.google-mark { width: 19px; flex: none; color: #4285f4; font-size: 24px; font-weight: 700; line-height: 1; }
+.session-hint { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--color-border); font-size: 13px; }
+@media (max-width: 800px) {
+  .session-page { grid-template-columns: 1fr; }
+  .session-intro { padding: 48px 24px; }
+  .session-intro__signature { display: none; }
+  .session-content { padding: 32px 16px 48px; }
+}
+@media (max-width: 480px) {
+  .session-card { padding: 24px; }
+  .session-card h2 { font-size: 28px; }
+  .session-actions { margin-top: 40px; }
+  .provider-button { gap: 14px; padding-inline: 16px; }
+}
+</style>
