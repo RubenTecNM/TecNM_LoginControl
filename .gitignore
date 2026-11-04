@@ -6,6 +6,7 @@ skills-lock.json
 .gemini/
 .aws
 .obsidian/
+.playwright-cli/
 
 # ==========================================
 # Frontend (Vue 3, Vite, TypeScript, Node)
